@@ -58,17 +58,27 @@ const routes: RouteRecordRaw[] = [
 // Navigation guard for auth
 export const setupNavigationGuards = (router: any) => {
   router.beforeEach((to: any, from: any, next: any) => {
-    // For now, just simulate auth check with localStorage
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'
+    const isAuthenticated = sessionStorage.getItem('isAuthenticated') === 'true';
+    const tokenExpiryTime = sessionStorage.getItem('tokenExpiryTime');
     
-    if (to.meta.requiresAuth && !isAuthenticated) {
-      next('/login')
-    } else if (to.path === '/login' && isAuthenticated) {
-      next('/app/dashboard')
-    } else {
-      next()
+    // Check if token is expired
+    const isTokenExpired = tokenExpiryTime ? Date.now() > parseInt(tokenExpiryTime) : true;
+    
+    if (isAuthenticated && isTokenExpired) {
+      // Token expired, clear session and redirect to login
+      sessionStorage.clear();
+      next('/login');
+      return;
     }
-  })
-}
+    
+    if (to.meta.requiresAuth && (!isAuthenticated || isTokenExpired)) {
+      next('/login');
+    } else if (to.path === '/login' && isAuthenticated && !isTokenExpired) {
+      next('/app/dashboard');
+    } else {
+      next();
+    }
+  });
+};
 
 export default routes

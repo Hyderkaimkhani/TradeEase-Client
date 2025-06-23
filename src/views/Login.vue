@@ -18,14 +18,14 @@ import { useAuth } from '../composables/useAuth';
 // Router
 const router = useRouter();
 const message = useMessage();
-const { login, signup } = useAuth();
+const { login, signup, isLoading, error } = useAuth();
 
 // Tab state
 const activeTab = ref('login');
 
 // Form models
 const loginForm = reactive({
-  email: '',
+  userName: '',
   password: ''
 });
 
@@ -42,9 +42,9 @@ const isSigningUp = ref(false);
 
 // Form rules
 const loginRules = {
-  email: [
-    { required: true, message: 'Please input your email', trigger: 'blur' },
-    { type: 'email', message: 'Please input a valid email address', trigger: 'blur' }
+  userName: [
+    { required: true, message: 'Please input your username', trigger: 'blur' },
+    { min: 3, message: 'Username must be at least 3 characters', trigger: 'blur' }
   ],
   password: [
     { required: true, message: 'Please input your password', trigger: 'blur' },
@@ -87,7 +87,7 @@ const handleLogin = (e: Event) => {
     if (!errors) {
       isLoggingIn.value = true;
       try {
-        await login(loginForm.email, loginForm.password);
+        await login(loginForm.userName, loginForm.password);
         message.success('Login successful');
         router.push('/app/dashboard');
       } catch (error: any) {
@@ -107,8 +107,13 @@ const handleSignup = (e: Event) => {
       isSigningUp.value = true;
       try {
         await signup(signupForm.name, signupForm.email, signupForm.password);
-        message.success('Signup successful');
-        router.push('/app/dashboard');
+        message.success('Signup successful! Please login with your credentials.');
+        // Clear the form and redirect to login tab
+        signupForm.name = '';
+        signupForm.email = '';
+        signupForm.password = '';
+        signupForm.confirmPassword = '';
+        activeTab.value = 'login';
       } catch (error: any) {
         message.error(error.message || 'Signup failed');
       } finally {
@@ -123,8 +128,8 @@ const handleSignup = (e: Event) => {
   <div class="min-h-screen flex items-center justify-center bg-gray-50 p-4">
     <n-card class="w-full max-w-md">
       <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-primary-600">ShipManager</h1>
-        <p class="text-gray-500">Trade Ease</p>
+        <h1 class="text-2xl font-bold text-primary-600">TradeEase</h1>
+        <p class="text-gray-500">Shipment Management System</p>
       </div>
 
       <n-tabs v-model:value="activeTab" animated>
@@ -136,14 +141,14 @@ const handleSignup = (e: Event) => {
             :rules="loginRules"
             label-placement="top"
           >
-            <n-form-item label="Email" path="email">
+            <n-form-item label="Username" path="userName">
               <n-input
-                v-model:value="loginForm.email"
-                placeholder="Enter your email"
+                v-model:value="loginForm.userName"
+                placeholder="Enter your username"
                 clearable
               >
                 <template #prefix>
-                  <n-icon><mail-outline /></n-icon>
+                  <n-icon><person-outline /></n-icon>
                 </template>
               </n-input>
             </n-form-item>
