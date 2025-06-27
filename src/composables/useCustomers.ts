@@ -60,7 +60,7 @@ export function useCustomers() {
         error.value = null;
         
         try {
-            const response = await apiService.put<Customer>(`/api/Customer/${id}`, data);
+            const response = await apiService.post<Customer>(`/api/Customer/Update`, data);
             
             if (response.isError) {
                 error.value = response.message;

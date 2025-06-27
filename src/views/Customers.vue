@@ -10,7 +10,8 @@ import {
   NForm,
   NFormItem,
   NInput,
-  NInputGroup,
+  NInputNumber,
+  NSelect,
   NTag,
   useMessage,
   NPopconfirm,
@@ -18,6 +19,8 @@ import {
 } from 'naive-ui';
 import { TrashOutline as DeleteIcon, PencilOutline as EditIcon } from '@vicons/ionicons5';
 import { useCustomers } from '../composables/useCustomers';
+import { FormInst } from 'naive-ui';
+import { customerColumns } from '../Constants/GridColumns';
 
 // Message API
 const message = useMessage();
@@ -38,32 +41,59 @@ const formTitle = ref('Add Customer');
 const isEditing = ref(false);
 const currentCustomerId = ref<number | null>(null);
 
+const formRef = ref<FormInst | null>(null)
 // Form model
 const formData = reactive({
   name: '',
-  email: '',
   phone: '',
   address: '',
   city: '',
-  state: '',
-  zipCode: '',
-  status: 'active'
+  entityType: '',
+  creditBalance: 0,
+  paymentTerms: '',
 });
 
 // Reset form
 const resetForm = () => {
   formData.name = '';
-  formData.email = '';
   formData.phone = '';
   formData.address = '';
   formData.city = '';
-  formData.state = '';
-  formData.zipCode = '';
-  formData.status = 'active';
+  formData.entityType = '';
+  formData.creditBalance = 0;
+  formData.paymentTerms = '';
   isEditing.value = false;
   currentCustomerId.value = null;
 };
 
+const entityTypeOptions = [
+  { label: 'Customer', value: 'Customer' },
+  { label: 'Supplier', value: 'Supplier' }
+]
+
+const rules = {
+  name: [
+    {
+      required: true,
+      message: 'Name is required',
+      trigger: ['input', 'blur']
+    }
+  ],
+  entityType: [
+    {
+      required: true,
+      message: 'Entity type is required',
+      trigger: ['input', 'blur']
+    }
+  ],
+  phone: [
+    {
+      required: true,
+      message: 'Phone number is required',
+      trigger: ['input', 'blur']
+    }
+  ],
+}
 // Open drawer for adding
 const openAddDrawer = () => {
   resetForm();
@@ -77,7 +107,7 @@ const openEditDrawer = (row: any) => {
   formTitle.value = 'Edit Customer';
   isEditing.value = true;
   currentCustomerId.value = row.id;
-  
+
   // Fill form with customer data
   Object.assign(formData, row);
   showDrawer.value = true;
@@ -85,27 +115,35 @@ const openEditDrawer = (row: any) => {
 
 // Handle form submission
 const handleSubmit = () => {
-  if (isEditing.value && currentCustomerId.value !== null) {
-    // Update existing customer
-    updateCustomer(currentCustomerId.value, formData)
-      .then(() => {
-        message.success('Customer updated successfully');
-        showDrawer.value = false;
-      })
-      .catch((error) => {
-        message.error(error.message || 'Failed to update customer');
-      });
-  } else {
-    // Add new customer
-    addCustomer(formData)
-      .then(() => {
-        message.success('Customer added successfully');
-        showDrawer.value = false;
-      })
-      .catch((error) => {
-        message.error(error.message || 'Failed to add customer');
-      });
-  }
+
+  formRef.value?.validate((errors) => {
+    if (!errors) {
+      if (isEditing.value && currentCustomerId.value !== null) 
+      {
+        // Update existing customer
+        updateCustomer(currentCustomerId.value, formData)
+          .then(() => {
+            message.success('Customer updated successfully');
+            showDrawer.value = false;
+          })
+          .catch((error) => {
+            message.error(error.message || 'Failed to update customer');
+          });
+      } 
+      else 
+      {
+        // Add new customer
+        addCustomer(formData)
+          .then(() => {
+            message.success('Customer added successfully');
+            showDrawer.value = false;
+          })
+          .catch((error) => {
+            message.error(error.message || 'Failed to add customer');
+          });
+      }
+    }
+  })
 };
 
 // Handle customer deletion
@@ -120,119 +158,7 @@ const handleDelete = (id: number) => {
 };
 
 // Table columns
-const columns = [
-  {
-    title: 'ID',
-    key: 'id',
-    width: 70
-  },
-  {
-    title: 'Name',
-    key: 'name',
-    width: 140
-  },
-  {
-    title: 'Email',
-    key: 'email',
-    width: 180
-  },
-  {
-    title: 'Phone',
-    key: 'phone',
-    width: 130
-  },
-  {
-    title: 'Address',
-    key: 'address',
-    ellipsis: {
-      tooltip: true
-    }
-  },
-  {
-    title: 'Status',
-    key: 'status',
-    width: 100,
-    render(row: any) {
-      const statusType = row.status === 'active' ? 'success' : 'error';
-      return h(
-        NTag,
-        {
-          type: statusType,
-          size: 'small'
-        },
-        {
-          default: () => row.status
-        }
-      );
-    }
-  },
-  {
-    title: 'Actions',
-    key: 'actions',
-    width: 120,
-    render(row: any) {
-      return h(
-        NSpace,
-        {
-          justify: 'center',
-          align: 'center'
-        },
-        {
-          default: () => [
-            h(
-              NButton,
-              {
-                quaternary: true,
-                circle: true,
-                onClick: () => openEditDrawer(row)
-              },
-              {
-                default: () => h(
-                  NIcon,
-                  {
-                    color: 'rgb(0, 82, 204)'
-                  },
-                  {
-                    default: () => h(EditIcon)
-                  }
-                )
-              }
-            ),
-            h(
-              NPopconfirm,
-              {
-                onPositiveClick: () => handleDelete(row.id),
-                negativeText: 'Cancel',
-                positiveText: 'Delete'
-              },
-              {
-                trigger: () => h(
-                  NButton,
-                  {
-                    quaternary: true,
-                    circle: true
-                  },
-                  {
-                    default: () => h(
-                      NIcon,
-                      {
-                        color: 'rgb(255, 86, 48)'
-                      },
-                      {
-                        default: () => h(DeleteIcon)
-                      }
-                    )
-                  }
-                ),
-                default: () => 'Are you sure you want to delete this customer?'
-              }
-            )
-          ]
-        }
-      );
-    }
-  }
-];
+const columns = customerColumns(openEditDrawer, handleDelete)
 
 // Load customers on mount
 fetchCustomers();
@@ -249,55 +175,41 @@ fetchCustomers();
 
     <!-- Customers Table -->
     <n-card>
-      <n-data-table
-        :columns="columns"
-        :data="customers"
-        :loading="loading"
-        :pagination="{ pageSize: 10 }"
-        striped
-      />
+      <n-data-table :columns="columns" :data="customers" :loading="loading" :pagination="{ pageSize: 10 }" striped />
     </n-card>
 
     <!-- Customer Drawer -->
-    <n-drawer
-      v-model:show="showDrawer"
-      :width="502"
-      placement="right"
-      :trap-focus="false"
-    >
+    <n-drawer v-model:show="showDrawer" :width="502" placement="right" :trap-focus="false">
       <n-drawer-content :title="formTitle" closable>
-        <n-form
-          ref="formRef"
-          :model="formData"
-          label-placement="top"
-        >
+        <n-form ref="formRef" :model="formData" :rules="rules" label-placement="top">
           <n-form-item label="Name" path="name" required>
             <n-input v-model:value="formData.name" placeholder="Customer name" />
           </n-form-item>
 
-          <n-form-item label="Email" path="email">
-            <n-input v-model:value="formData.email" placeholder="Email address" />
+          <n-form-item label="Entity Type" path="entityType" required>
+            <n-select v-model:value="formData.entityType" placeholder="Select entity type" :disabled="isEditing"
+              :options="entityTypeOptions" />
           </n-form-item>
 
-          <n-form-item label="Phone" path="phone">
+          <n-form-item label="Phone" path="phone" required>
             <n-input v-model:value="formData.phone" placeholder="Phone number" />
           </n-form-item>
 
+          <div class="grid grid-cols-2 gap-4">
+            <n-form-item label="Credit Balance" path="creditBalance">
+              <n-input-number v-model:value="formData.creditBalance" placeholder="Credit Balance" />
+            </n-form-item>
+          </div>
           <n-form-item label="Address" path="address">
             <n-input v-model:value="formData.address" placeholder="Street address" />
           </n-form-item>
 
-          <div class="grid grid-cols-3 gap-4">
+          <div class="grid grid-cols-2 gap-4">
             <n-form-item label="City" path="city">
               <n-input v-model:value="formData.city" placeholder="City" />
             </n-form-item>
-
-            <n-form-item label="State" path="state">
-              <n-input v-model:value="formData.state" placeholder="State" />
-            </n-form-item>
-
-            <n-form-item label="Zip Code" path="zipCode">
-              <n-input v-model:value="formData.zipCode" placeholder="Zip code" />
+            <n-form-item label="Payment Terms" path="paymentTerms">
+              <n-input v-model:value="formData.paymentTerms" placeholder="Payment terms" />
             </n-form-item>
           </div>
 

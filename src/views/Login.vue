@@ -129,7 +129,7 @@ const handleSignup = (e: Event) => {
     <n-card class="w-full max-w-md">
       <div class="text-center mb-6">
         <h1 class="text-2xl font-bold text-primary-600">TradeEase</h1>
-        <p class="text-gray-500">Shipment Management System</p>
+        <p class="text-gray-500">Trade Smarter, Grow Faster</p>
       </div>
 
       <n-tabs v-model:value="activeTab" animated>
