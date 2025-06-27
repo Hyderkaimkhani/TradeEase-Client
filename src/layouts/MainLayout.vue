@@ -60,6 +60,12 @@ const menuOptions = [
     key: 'trucks',
     icon: TruckIcon,
     path: '/app/trucks'
+  },
+  {
+    label: 'Sample Page',
+    key: 'sample',
+    icon: TruckIcon,
+    path: '/app/sample'
   }
 ];
 
@@ -133,7 +139,7 @@ const toggleSidebar = () => {
       class="sidebar-transition"
     >
       <div class="p-4 flex items-center justify-center">
-        <h2 class="text-xl font-bold text-primary-600">ShipManager</h2>
+        <h2 class="text-xl font-bold text-primary-600">TradeEase</h2>
       </div>
       <n-menu
         v-model:value="activeKey"
