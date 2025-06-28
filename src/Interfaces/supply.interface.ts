@@ -1,7 +1,7 @@
 export interface Supply {
     id: number;
     supplierId: number;
-    SupplyNumber: string;
+    supplyNumber: string;
     fruitId: number;
     truckId: number | null;
     quantity: number;

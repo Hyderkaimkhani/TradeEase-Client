@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import {
   NButton,
   NCard,
@@ -51,19 +51,33 @@ const selectedFruitId = ref<number | null>(null);
 const selectedSupplierId = ref<number | null>(null);
 
 const formRef = ref<FormInst | null>(null)
+const formKey = ref(0)
 
+// Optional: Reset form
+const resetForm = () => {
+  Object.assign(formData, {
+    supplierId: null,
+    fruitId: null
+  })
+  formKey.value++ // force re-render
+}
 // Form model
 const formData = reactive({
-  supplierId: null,
-  supplyNumber:'',
-  fruitId: 0,
-  quantity: 0,
+  supplierId: null as number | null,
+  supplyNumber: '',
+  fruitId: null as number | null,
+  quantity: null as number | null,
   purchasePrice: 0,
   supplyDate: '',
   truckNumber: '',
   notes: '',
 });
 
+const totalPrice = computed(() => {
+  const qty = formData.quantity || 0
+  const price = formData.purchasePrice || 0
+  return +(qty * price).toFixed(2) // Ensures precision
+})
 
 const fruitOptions = ref([
   { label: 'Apple', value: 1 },
@@ -73,10 +87,10 @@ const fruitOptions = ref([
 ]);
 
 // Reset form
-const resetForm = () => {
+const resetFormData = () => {
   formData.supplierId = null;
   formData.supplyNumber = '';
-  formData.fruitId = 0;
+  formData.fruitId = null;
   formData.quantity = 0;
   formData.purchasePrice = 0;
   formData.supplyDate = '';
@@ -91,60 +105,70 @@ const rules = {
     {
       required: true,
       message: 'Supplier is required',
-      trigger: ['input', 'blur']
+      trigger: ['change'],
+      validator: (_rule: any, value: any) => {
+        if (value == null || value === '') return new Error('Supplier is required.')
+        return true
+      }
     }
   ],
   fruitId: [
     {
       required: true,
       message: 'Fruit is required',
-      trigger: ['input', 'blur']
+      trigger: ['change']
     }
   ],
   quantity: [
     {
       required: true,
-      message: 'Quantity is required',
-      trigger: ['input', 'blur']
-    },
-    {
-      type: 'number' as RuleType,
-      min: 1,
-      message: 'Quantity must be at least 1',
-      trigger: ['input', 'blur']
+      trigger: ['input', 'blur', 'change'],
+      validator: (_rule: any, value: any) => {
+        if (value === null || value === undefined || value === '') {
+          return new Error('Quantity is required')
+        }
+        if (typeof value !== 'number' || value < 1) {
+          return new Error('Quantity must be at least 1')
+        }
+        return true
+      }
     }
   ],
   purchasePrice: [
     {
       required: true,
-      message: 'Purchase price is required',
-      trigger: ['input', 'blur']
-    },
-    {
-      type: 'number' as RuleType,
-      min: 1,
-      message: 'Purchase price must be at least 1',
-      trigger: ['input', 'blur']
+      trigger: ['input', 'blur', 'change'],
+      validator: (_rule: any, value: any) => {
+        if (value === null || value === undefined || value === '') {
+          return new Error('Purchase Price is required')
+        }
+        if (typeof value !== 'number' || value < 1) {
+          return new Error('Purchase Price must be at least 1')
+        }
+        return true
+      }
     }
   ],
   truckNumber: [
     {
       required: true,
       message: 'Truck number is required',
-      trigger: ['input', 'blur']
+      trigger: ['input', 'blur', 'change']
     }
   ]
 };
 
 // Open drawer for adding
 const openAddDrawer = () => {
-  resetForm();
+  resetFormData();
   formTitle.value = 'Add Supply';
   showDrawer.value = true;
 };
 
 // Open drawer for editing
 const openEditDrawer = (row: any) => {
+  console.log('Opening edit drawer with row data:', row);
+
   resetForm();
   formTitle.value = 'Edit Supply';
   isEditing.value = true;
@@ -152,23 +176,46 @@ const openEditDrawer = (row: any) => {
 
   // Fill form with supply data
   formData.supplierId = row.supplierId;
+  formData.supplyNumber = row.supplyNumber || '';
   formData.fruitId = row.fruitId;
   formData.quantity = row.quantity;
   formData.purchasePrice = row.purchasePrice;
   formData.supplyDate = row.supplyDate;
   formData.truckNumber = row.truckNumber || '';
   formData.notes = row.notes || '';
+
+  console.log('Form data after populating:', formData);
   showDrawer.value = true;
 };
 
 // Handle form submission
 const handleSubmit = () => {
+  console.log('Form data before validation:', formData);
+
   formRef.value?.validate((errors) => {
+    console.log('Validation errors:', errors);
+
     if (!errors) {
+      // Ensure we have valid values before submission
+      if (!formData.supplierId || !formData.fruitId || formData.quantity <= 0 || formData.purchasePrice <= 0) {
+        message.error('Please fill in all required fields with valid values');
+        console.log('Manual validation failed:', {
+          supplierId: formData.supplierId,
+          fruitId: formData.fruitId,
+          quantity: formData.quantity,
+          purchasePrice: formData.purchasePrice
+        });
+        return;
+      }
+
       const submitData = {
         ...formData,
+        supplierId: formData.supplierId,
+        fruitId: formData.fruitId,
         supplyDate: formData.supplyDate || new Date().toISOString(),
       };
+
+      console.log('Submit data:', submitData);
 
       if (isEditing.value && currentSupplyId.value !== null) {
         // Update existing supply
@@ -275,39 +322,46 @@ getCustomerSuppliersList(EntityType.Supplier);
     <!-- Supply Drawer -->
     <n-drawer v-model:show="showDrawer" :width="502" placement="right" :trap-focus="false">
       <n-drawer-content :title="formTitle" closable>
-        <n-form ref="formRef" :model="formData" :rules="rules" label-placement="top">
-          <n-form-item label="Supplier Number">
-            <n-input v-model:value="formData.supplyNumber" placeholder="SUP-0001" disabled style="width: 200px" />
-          </n-form-item>
+        <n-form ref="formRef" :model="formData" :rules="rules" :key="formKey" label-placement="top">
           <div class="grid grid-cols-2 gap-4">
-            <n-form-item label="Supplier" path="supplierId" required>
-              <n-select v-model:value="formData.supplierId" placeholder="Select supplier" :options="entityList"
-                :disabled="isEditing" />
+            <n-form-item label="Supply Number">
+              <n-input v-model:value="formData.supplyNumber" placeholder="SUP-0001" disabled />
             </n-form-item>
-            <n-form-item label="Fruit" path="fruitId" required>
-              <n-select v-model:value="formData.fruitId" placeholder="Select fruit" :options="fruitOptions"
-                :disabled="isEditing" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <n-form-item label="Supplier" path="supplierId">
+              <n-select v-model:value="formData.supplierId" placeholder="Select supplier" :options="entityList"
+                filterable clearable :disabled="isEditing" />
+            </n-form-item>
+            <n-form-item label="Fruit" path="fruitId">
+              <n-select v-model:value="formData.fruitId" placeholder="Select fruit" :options="fruitOptions" filterable
+                clearable :disabled="isEditing" />
             </n-form-item>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
-            <n-form-item label="Quantity (kg)" path="quantity" required>
+            <n-form-item label="Quantity" path="quantity">
               <n-input-number v-model:value="formData.quantity" placeholder="Quantity" :min="1" :precision="2" />
             </n-form-item>
-            <n-form-item label="Purchase Price" path="purchasePrice" required>
+            <n-form-item label="Purchase Price" path="purchasePrice">
               <n-input-number v-model:value="formData.purchasePrice" placeholder="Purchase price" :min="1"
                 :precision="2" />
             </n-form-item>
           </div>
 
+          <div class="grid grid-cols-2 gap-4">
+            <n-form-item label="Total Price">
+              <n-input-number :value="totalPrice" placeholder="Total price" :precision="2" disabled />
+            </n-form-item>
+            <n-form-item label="Truck Number" path="truckNumber" required>
+              <n-input v-model:value="formData.truckNumber" placeholder="Truck number" />
+            </n-form-item>
+          </div>
+
           <n-form-item label="Supply Date" path="supplyDate">
             <n-date-picker :value="formData.supplyDate ? Date.parse(formData.supplyDate) : null" type="datetime"
-              placeholder="Select date and time" clearable
+              placeholder="Select date and time" :update-value-on-close="true" clearable
               @update:value="val => formData.supplyDate = val ? new Date(val).toISOString() : ''" />
-          </n-form-item>
-
-          <n-form-item label="Truck Number" path="truckNumber" required>
-            <n-input v-model:value="formData.truckNumber" placeholder="Truck number" />
           </n-form-item>
 
           <n-form-item label="Notes" path="notes">
@@ -328,4 +382,4 @@ getCustomerSuppliersList(EntityType.Supplier);
       </n-drawer-content>
     </n-drawer>
   </div>
-</template> 
+</template>

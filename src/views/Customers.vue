@@ -12,12 +12,9 @@ import {
   NInput,
   NInputNumber,
   NSelect,
-  NTag,
-  useMessage,
-  NPopconfirm,
-  NIcon
+
+  useMessage
 } from 'naive-ui';
-import { TrashOutline as DeleteIcon, PencilOutline as EditIcon } from '@vicons/ionicons5';
 import { useCustomers } from '../composables/useCustomers';
 import { FormInst } from 'naive-ui';
 import { customerColumns } from '../Constants/GridColumns';
