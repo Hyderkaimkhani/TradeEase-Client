@@ -2,12 +2,14 @@
 import { ref } from 'vue';
 import { apiService } from '../api/ApiService';
 import { Customer } from '../Interfaces/customer.interface';
+import { EntityType } from '../Constants/Enums';
 
 export function useCustomers() {
     const customers = ref<Customer[]>([]);
     const loading = ref(false);
     const error = ref<string | null>(null);
-    
+    const entityList = ref()        //<{ label: string; value: number }[]>([])
+
     const fetchCustomers = async () => {
         loading.value = true;
         error.value = null;
@@ -29,6 +31,31 @@ export function useCustomers() {
         }
     };
     
+    const getCustomerSuppliersList = async (entityType: EntityType) => {
+      loading.value = true;
+      error.value = null;
+
+      try {
+        const url = `/api/${entityType}/dropdown`;
+        const response = await apiService.get<
+          { label: string; value: number }[]
+        >(url);
+
+        if (response.isError) {
+          error.value = response.message;
+          return;
+        }
+
+        entityList.value = response || [];
+        console.log('Entity List:', entityList.value);
+      } catch (err: any) {
+        error.value = err.message || "Failed to fetch data";
+        console.error(error.value);
+      } finally {
+        loading.value = false;
+      }
+    };
+
     const addCustomer = async (data: Omit<Customer, 'id'>) => {
         loading.value = true;
         error.value = null;
@@ -105,14 +132,18 @@ export function useCustomers() {
             loading.value = false;
         }
     };
+
+    
     
     return {
         customers,
         loading,
         error,
+        entityList,
         fetchCustomers,
         addCustomer,
         updateCustomer,
-        deleteCustomer
+        deleteCustomer,
+        getCustomerSuppliersList
     };
 }

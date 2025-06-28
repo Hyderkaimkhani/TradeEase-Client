@@ -10,8 +10,7 @@ import {
   NButton,
   NDropdown,
   NIcon,
-  NAvatar,
-  NSpace
+  NAvatar
 } from 'naive-ui';
 import {
   HomeOutline as HomeIcon,
@@ -19,7 +18,8 @@ import {
   CarOutline as TruckIcon,
   PersonOutline as PersonIcon,
   LogOutOutline as LogOutIcon,
-  MenuOutline as MenuIcon
+  MenuOutline as MenuIcon,
+  CubeOutline as SupplyIcon
 } from '@vicons/ionicons5';
 
 // Router
@@ -56,6 +56,12 @@ const menuOptions = [
     path: '/app/customers'
   },
   {
+    label: 'Supplies',
+    key: 'supplies',
+    icon: SupplyIcon,
+    path: '/app/supplies'
+  },
+  {
     label: 'Trucks',
     key: 'trucks',
     icon: TruckIcon,
@@ -67,7 +73,7 @@ const menuOptions = [
     icon: TruckIcon,
     path: '/app/sample'
   }
-];
+] as any[];
 
 // User dropdown options
 const userOptions = [
@@ -81,7 +87,7 @@ const userOptions = [
     key: 'logout',
     icon: LogOutIcon
   }
-];
+] as any[];
 
 // Active menu item
 const activeKey = computed(() => {

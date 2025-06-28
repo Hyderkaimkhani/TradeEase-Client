@@ -5,6 +5,7 @@ import Dashboard from '../views/Dashboard.vue'
 import Profile from '../views/Profile.vue'
 import Customers from '../views/Customers.vue'
 import Trucks from '../views/Trucks.vue'
+import Supplies from '../views/Supplies.vue'
 import SamplePage from '../views/SamplePage.vue'
 
 // Define routes
@@ -45,6 +46,11 @@ const routes: RouteRecordRaw[] = [
         component: Trucks
       },
       {
+        path: 'supplies',
+        name: 'Supplies',
+        component: Supplies
+      },
+      {
         path: 'sample',
         name: 'SamplePage',
         component: SamplePage
@@ -63,7 +69,7 @@ const routes: RouteRecordRaw[] = [
 
 // Navigation guard for auth
 export const setupNavigationGuards = (router: any) => {
-  router.beforeEach((to: any, from: any, next: any) => {
+  router.beforeEach((to: any, _from: any, next: any) => {
     const isAuthenticated = sessionStorage.getItem('isAuthenticated') === 'true';
     const tokenExpiryTime = sessionStorage.getItem('tokenExpiryTime');
     
