@@ -305,3 +305,222 @@ export const supplyColumns=(openEditDrawer:any, handleDelete:any)=> [
     }
   }
 ];
+
+export const orderColumns=(openEditDrawer:any, handleDelete:any)=> [
+  {
+    title: 'Order Number',
+    key: 'orderNumber',
+    width: 160
+  }, 
+  {
+    title: 'Customer',
+    key: 'customerName',
+    width: 160
+  },
+  {
+    title: 'Fruit',
+    key: 'fruitName',
+    width: 100
+  },
+  // {
+  //   title: 'Quantity',
+  //   key: 'quantity',
+  //   width: 100,
+  //   render(row: any) {
+  //     return h(
+  //       NTag,
+  //       {
+  //         bordered: false,
+  //         type: 'info',
+  //         size: 'small'
+  //       },
+  //       {
+  //         default: () => `${row.quantity.toFixed(2)} kg`
+  //       }
+  //     );
+  //   }
+  // },
+  // {
+  //   title: 'Selling Price',
+  //   key: 'sellingPrice',
+  //   width: 130,
+  //   render(row: any) {
+  //     return h(
+  //       NTag,
+  //       {
+  //         bordered: false,
+  //         type: 'success',
+  //         size: 'small'
+  //       },
+  //       {
+  //         default: () => `Rs. ${row.sellingPrice.toFixed(2)}`
+  //       }
+  //     );
+  //   }
+  // },
+  {
+    title: 'Selling Price',
+    key: 'totalSellingPrice',
+    width: 150,
+    render(row: any) {
+      return h(
+        NTag,
+        {
+          bordered: false,
+          type: 'success',
+          size: 'small'
+        },
+        {
+          default: () => `Rs. ${row.totalSellingPrice.toFixed(2)}`
+        }
+      );
+    }
+  },
+  {
+    title: 'Profit/Loss',
+    key: 'profitLoss',
+    width: 120,
+    render(row: any) {
+      const profitLoss = row.profitLoss || 0;
+      const statusType = profitLoss >= 0 ? 'success' : 'error';
+      return h(
+        NTag,
+        {
+          bordered: false,
+          type: statusType,
+          size: 'small'
+        },
+        {
+          default: () => `Rs. ${profitLoss.toFixed(2)}`
+        }
+      );
+    }
+  },
+  {
+    title: 'Order Date',
+    key: 'orderDate',
+    width: 130,
+    render(row: any) {
+      const date = new Date(row.orderDate);
+      return date.toLocaleDateString();
+    }
+  },
+  // {
+  //   title: 'Delivery Date',
+  //   key: 'deliveryDate',
+  //   width: 130,
+  //   render(row: any) {
+  //     if (!row.deliveryDate) return '-';
+  //     const date = new Date(row.deliveryDate);
+  //     return date.toLocaleDateString();
+  //   }
+  // },
+  {
+    title: 'Status',
+    key: 'status',
+    width: 120,
+    render(row: any) {
+      const status = row.status || 'Pending';
+      const statusType = status === 'Delivered' ? 'success' : status === 'Dispatched' ? 'warning' : status === 'Canceled' ? 'error' : 'info';
+      
+      return h(
+        NTag,
+        {
+          type: statusType,
+          size: 'small',
+          bordered: false
+        },
+        {
+          default: () => status
+        }
+      );
+    }
+  },
+  {
+    title: 'Payment Status',
+    key: 'paymentStatus',
+    width: 120,
+    render(row: any) {
+      const status = row.paymentStatus || 'Pending';
+      const statusType = status === 'Paid' ? 'success' : status === 'Partial' ? 'warning' : 'error';
+      
+      return h(
+        NTag,
+        {
+          type: statusType,
+          size: 'small',
+          bordered: false
+        },
+        {
+          default: () => status
+        }
+      );
+    }
+  },
+  {
+    title: 'Actions',
+    key: 'actions',
+    width: 120,
+    render(row: any) {
+      return h(
+        NSpace,
+        {
+          justify: 'center',
+          align: 'center'
+        },
+        {
+          default: () => [
+            h(
+              NButton,
+              {
+                quaternary: true,
+                circle: true,
+                onClick: () => openEditDrawer(row)
+              },
+              {
+                default: () => h(
+                  NIcon,
+                  {
+                    color: 'rgb(0, 82, 204)'
+                  },
+                  {
+                    default: () => h(EditIcon)
+                  }
+                )
+              }
+            ),
+            h(
+              NPopconfirm,
+              {
+                onPositiveClick: () => handleDelete(row.id),
+                negativeText: 'Cancel',
+                positiveText: 'Delete'
+              },
+              {
+                trigger: () => h(
+                  NButton,
+                  {
+                    quaternary: true,
+                    circle: true
+                  },
+                  {
+                    default: () => h(
+                      NIcon,
+                      {
+                        color: 'rgb(255, 86, 48)'
+                      },
+                      {
+                        default: () => h(DeleteIcon)
+                      }
+                    )
+                  }
+                ),
+                default: () => 'Are you sure you want to delete this order?'
+              }
+            )
+          ]
+        }
+      );
+    }
+  }
+];

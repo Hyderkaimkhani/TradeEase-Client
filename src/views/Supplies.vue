@@ -18,8 +18,7 @@ import {
 import { useSupplies } from '../composables/useSupplies';
 import { FormInst } from 'naive-ui';
 import { supplyColumns } from '../Constants/GridColumns';
-import type { RuleType } from 'async-validator';
-import { EntityType } from '../Constants/Enums';
+import { EntityType, PaymentStatus } from '../Constants/Enums';
 import { useCustomers } from '../composables/useCustomers';
 import { useCommon } from '../composables/useCommon';
 
@@ -72,10 +71,12 @@ const formData = reactive({
   supplierId: null as number | null,
   supplyNumber: '',
   fruitId: null as number | null,
-  quantity: null as number | null,
+  quantity: 0,
   purchasePrice: 0,
   supplyDate: '',
   truckNumber: '',
+  paymentStatus: '',
+  amountPaid: 0,
   notes: '',
 });
 
@@ -84,8 +85,6 @@ const totalPrice = computed(() => {
   const price = formData.purchasePrice || 0
   return +(qty * price).toFixed(2) // Ensures precision
 })
-
-const fruitOptions = fruits;
 
 // Reset form
 const resetFormData = () => {
@@ -97,6 +96,8 @@ const resetFormData = () => {
   formData.supplyDate = '';
   formData.truckNumber = '';
   formData.notes = '';
+  formData.paymentStatus= PaymentStatus.Unpaid;
+  formData.amountPaid = 0;
   isEditing.value = false;
   currentSupplyId.value = null;
 };
@@ -186,6 +187,8 @@ const openEditDrawer = (row: any) => {
   formData.quantity = row.quantity;
   formData.purchasePrice = row.purchasePrice;
   formData.supplyDate = row.supplyDate;
+  formData.paymentStatus = row.paymentStatus || '';
+  formData.amountPaid = row.amountPaid || 0;
   formData.truckNumber = row.truckNumber || '';
   formData.notes = row.notes || '';
 
@@ -296,7 +299,7 @@ fetchFruits();
 
 <template>
   <div>
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex justify-between items-center">
       <h1 class="text-2xl font-bold">Supplies</h1>
       <n-button type="primary" @click="openAddDrawer">
         Add Supply
@@ -314,9 +317,9 @@ fetchFruits();
           <n-select v-model:value="selectedSupplierId" placeholder="Select supplier" :options="entityList" filterable
             clearable @update:value="handleSupplierFilterChange" style="width: 200px" />
         </n-form-item>
-        <n-button @click="loadSupplies" :loading="loading">
+        <!-- <n-button @click="loadSupplies" :loading="loading">
           Refresh
-        </n-button>
+        </n-button> -->
       </div>
     </n-card>
 
@@ -333,15 +336,18 @@ fetchFruits();
             <n-form-item label="Supply Number">
               <n-input v-model:value="formData.supplyNumber" placeholder="SUP-0001" disabled />
             </n-form-item>
+            <n-form-item label="Fruit" path="fruitId">
+              <n-select v-model:value="formData.fruitId" placeholder="Select fruit" :options="fruits" filterable
+                clearable :disabled="isEditing" />
+            </n-form-item>
           </div>
           <div class="grid grid-cols-2 gap-4">
             <n-form-item label="Supplier" path="supplierId">
               <n-select v-model:value="formData.supplierId" placeholder="Select supplier" :options="entityList"
                 filterable clearable :disabled="isEditing" />
             </n-form-item>
-            <n-form-item label="Fruit" path="fruitId">
-              <n-select v-model:value="formData.fruitId" placeholder="Select fruit" :options="fruits" filterable
-                clearable :disabled="isEditing" />
+            <n-form-item label="Truck Number" path="truckNumber" required>
+              <n-input v-model:value="formData.truckNumber" placeholder="Truck number" />
             </n-form-item>
           </div>
 
@@ -359,19 +365,23 @@ fetchFruits();
             <n-form-item label="Total Price">
               <n-input-number :value="totalPrice" placeholder="Total price" :precision="2" disabled />
             </n-form-item>
-            <n-form-item label="Truck Number" path="truckNumber" required>
-              <n-input v-model:value="formData.truckNumber" placeholder="Truck number" />
-            </n-form-item>
-          </div>
-
-          <n-form-item label="Supply Date" path="supplyDate">
+            <n-form-item label="Supply Date" path="supplyDate">
             <n-date-picker :value="formData.supplyDate ? Date.parse(formData.supplyDate) : null" type="datetime"
               placeholder="Select date and time" :update-value-on-close="true" clearable
               @update:value="val => formData.supplyDate = val ? new Date(val).toISOString() : ''" />
           </n-form-item>
+          </div>
+        <div class="grid grid-cols-2 gap-4">
+            <n-form-item v-if="isEditing" label="Payment Status" path="paymentStatus">
+              <n-input v-model:value="formData.paymentStatus" placeholder="Payment Status" disabled />
+            </n-form-item>
+            <n-form-item v-if="isEditing" label="Amount Paid" path="amountPaid">
+              <n-input-number v-model:value="formData.amountPaid" placeholder="Amount Paid"  disabled/>
+            </n-form-item>
+          </div>
 
           <n-form-item label="Notes" path="notes">
-            <n-input v-model:value="formData.notes" type="textarea" placeholder="Additional notes" :rows="3" />
+            <n-input v-model:value="formData.notes" type="textarea" placeholder="Additional notes" :rows="2" />
           </n-form-item>
 
           <div class="flex justify-end mt-6">

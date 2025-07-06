@@ -19,7 +19,8 @@ import {
   PersonOutline as PersonIcon,
   LogOutOutline as LogOutIcon,
   MenuOutline as MenuIcon,
-  CubeOutline as SupplyIcon
+  CubeOutline as SupplyIcon,
+  DocumentTextOutline as OrderIcon
 } from '@vicons/ionicons5';
 
 // Router
@@ -60,6 +61,12 @@ const menuOptions = [
     key: 'supplies',
     icon: SupplyIcon,
     path: '/app/supplies'
+  },
+  {
+    label: 'Orders',
+    key: 'orders',
+    icon: OrderIcon,
+    path: '/app/orders'
   },
   {
     label: 'Trucks',
