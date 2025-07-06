@@ -21,6 +21,7 @@ import { supplyColumns } from '../Constants/GridColumns';
 import type { RuleType } from 'async-validator';
 import { EntityType } from '../Constants/Enums';
 import { useCustomers } from '../composables/useCustomers';
+import { useCommon } from '../composables/useCommon';
 
 // Message API
 const message = useMessage();
@@ -39,6 +40,11 @@ const
   { entityList,
     getCustomerSuppliersList
   } = useCustomers();
+
+const
+  { fruits,
+    fetchFruits
+  } = useCommon();
 
 // Drawer state
 const showDrawer = ref(false);
@@ -79,12 +85,7 @@ const totalPrice = computed(() => {
   return +(qty * price).toFixed(2) // Ensures precision
 })
 
-const fruitOptions = ref([
-  { label: 'Apple', value: 1 },
-  { label: 'Banana', value: 2 },
-  { label: 'Orange', value: 3 },
-  { label: 'Mango', value: 4 },
-]);
+const fruitOptions = fruits;
 
 // Reset form
 const resetFormData = () => {
@@ -116,7 +117,11 @@ const rules = {
     {
       required: true,
       message: 'Fruit is required',
-      trigger: ['change']
+      trigger: ['change'],
+      validator: (_rule: any, value: any) => {
+        if (value == null || value === '') return new Error('Fruit is required.')
+        return true
+      }
     }
   ],
   quantity: [
@@ -285,6 +290,7 @@ const columns = supplyColumns(openEditDrawer, handleDelete);
 // Load supplies on mount
 loadSupplies();
 getCustomerSuppliersList(EntityType.Supplier);
+fetchFruits();
 
 </script>
 
@@ -301,7 +307,7 @@ getCustomerSuppliersList(EntityType.Supplier);
     <n-card class="mb-4">
       <div class="flex gap-4 items-end">
         <n-form-item label="Filter by Fruit">
-          <n-select v-model:value="selectedFruitId" placeholder="Select fruit" :options="fruitOptions" clearable
+          <n-select v-model:value="selectedFruitId" placeholder="Select fruit" :options="fruits" clearable
             @update:value="handleFruitFilterChange" style="width: 200px" />
         </n-form-item>
         <n-form-item label="Filter by Supplier">
@@ -334,7 +340,7 @@ getCustomerSuppliersList(EntityType.Supplier);
                 filterable clearable :disabled="isEditing" />
             </n-form-item>
             <n-form-item label="Fruit" path="fruitId">
-              <n-select v-model:value="formData.fruitId" placeholder="Select fruit" :options="fruitOptions" filterable
+              <n-select v-model:value="formData.fruitId" placeholder="Select fruit" :options="fruits" filterable
                 clearable :disabled="isEditing" />
             </n-form-item>
           </div>
