@@ -28,6 +28,7 @@ export class ApiService {
                 const token = sessionStorage.getItem('accessToken');
                 if (token) {
                     config.headers.Authorization = `Bearer ${token}`;
+                    // config.headers.cache = 'no-cache'; // Disable caching for requests
                 }
                 return config;
             },
@@ -106,7 +107,6 @@ export class ApiService {
 
     // Auth methods
     async login(credentials: LoginRequest): Promise<ApiResponse<LoginResponse>> {
-        debugger;
         try {
             const response = await this.api.post<ApiResponse<LoginResponse>>('/api/Users/Login', credentials);
             

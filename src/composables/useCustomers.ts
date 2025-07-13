@@ -31,12 +31,12 @@ export function useCustomers() {
         }
     };
     
-    const getCustomerSuppliersList = async (entityType: EntityType) => {
+    const getCustomerSuppliersList = async (entityType?: EntityType | null) => {
       loading.value = true;
       error.value = null;
 
       try {
-        const url = `/api/${entityType}/dropdown`;
+        const url = entityType ? `/api/${entityType}/dropdown` : `/api/Entity/dropdown`;
         const response = await apiService.get<
           { label: string; value: number }[]
         >(url);

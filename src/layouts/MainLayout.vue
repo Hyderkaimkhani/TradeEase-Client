@@ -20,7 +20,8 @@ import {
   LogOutOutline as LogOutIcon,
   MenuOutline as MenuIcon,
   CubeOutline as SupplyIcon,
-  DocumentTextOutline as OrderIcon
+  DocumentTextOutline as OrderIcon,
+  WalletOutline as PaymentIcon
 } from '@vicons/ionicons5';
 
 // Router
@@ -67,6 +68,12 @@ const menuOptions = [
     key: 'orders',
     icon: OrderIcon,
     path: '/app/orders'
+  },
+  {
+    label: 'Payments',
+    key: 'payments',
+    icon: PaymentIcon,
+    path: '/app/payments'
   },
   {
     label: 'Trucks',

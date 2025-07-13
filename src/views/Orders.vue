@@ -79,6 +79,7 @@ const formData = reactive({
   purchasePrice: 0,
   totalPusrchasePrice: 0,
   ProfitLoss: 0,
+  amountReceived: 0,
   orderDate: '',
   deliveryDate: '',
   status: OrderStatus.Pending,
@@ -212,6 +213,7 @@ const openEditDrawer = (row: any) => {
   formData.purchasePrice = row.purchasePrice || 0;
   formData.totalPusrchasePrice = row.totalPurchasePrice || 0;
   formData.ProfitLoss = row.profitLoss || 0;
+  formData.amountReceived = row.amountReceived || 0;
   formData.orderDate = row.orderDate;
   formData.deliveryDate = row.deliveryDate || '';
   formData.status = row.status || 'Pending';
@@ -400,6 +402,12 @@ fetchFruits();
             </n-form-item>
             <n-form-item v-if="isEditing" label="Profit/Loss" path="profitLoss" hidden="true">
               <n-input-number v-model:value="formData.ProfitLoss" placeholder="Profit/Loss" :precision="2" disabled />
+            </n-form-item>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <n-form-item v-if="isEditing" label="Amount Received" path="amountReceived">
+              <n-input-number v-model:value="formData.amountReceived" placeholder="Amount Received" :precision="2"
+                disabled />
             </n-form-item>
           </div>
           <div class="grid grid-cols-2 gap-4">

@@ -20,3 +20,10 @@ export enum OrderStatus {
   Delivered = "Delivered",
   Canceled = "Canceled",
 }
+
+export enum PaymentMethod {
+  Cash = "Cash",
+  Cheque = "Cheque",
+  BankTransfer = "Bank Transfer",
+  MobilePayment = "Mobile Payment"
+}
