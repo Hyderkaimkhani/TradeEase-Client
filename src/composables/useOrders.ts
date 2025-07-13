@@ -20,13 +20,57 @@ export function useOrders() {
             
             if (response.isError) {
                 error.value = response.message;
-                return;
+                return 0;
             }
             
             orders.value = response.model || [];
+            return response.totalCount || 0;
         } catch (err: any) {
             error.value = err.message || 'Failed to fetch orders';
             console.error(error.value);
+            return 0;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    const fetchOrdersWithFilters = async (
+        page: number = 1, 
+        pageSize: number = 10, 
+        fruitId?: number, 
+        customerId?: number,
+        orderNumber?: string,
+        fromDate?: string,
+        toDate?: string,
+        status?: string,
+        paymentStatus?: string
+    ) => {
+        loading.value = true;
+        error.value = null;
+        
+        try {
+            let url = `/api/Orders?page=${page}&pageSize=${pageSize}`;
+            if (fruitId) url += `&fruitId=${fruitId}`;
+            if (customerId) url += `&customerId=${customerId}`;
+            if (orderNumber) url += `&orderNumber=${orderNumber}`;
+            if (fromDate) url += `&fromDate=${fromDate}`;
+            if (toDate) url += `&toDate=${toDate}`;
+            if (status) url += `&status=${status}`;
+            if (paymentStatus) url += `&paymentStatus=${paymentStatus}`;
+            
+            const response = await apiService.get<Order[]>(url);
+            
+            if (response.isError) {
+                error.value = response.message;
+                return 0;
+            }
+            
+            orders.value = response.model || [];
+            return response.totalCount || 0;
+        } catch (err: any) {
+            error.value = err.message || 'Failed to fetch orders';
+            console.error(error.value);
+            return 0;
         } finally {
             loading.value = false;
         }
@@ -136,6 +180,7 @@ export function useOrders() {
         loading,
         error,
         fetchOrders,
+        fetchOrdersWithFilters,
         addOrder,
         updateOrder,
         deleteOrder,

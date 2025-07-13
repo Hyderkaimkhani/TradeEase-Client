@@ -13,6 +13,7 @@ import {
   NInputNumber,
   NSelect,
   NDatePicker,
+  NPagination,
   useMessage,
 } from 'naive-ui';
 import { useOrders } from '../composables/useOrders';
@@ -31,6 +32,7 @@ const {
   orders,
   loading,
   fetchOrders,
+  fetchOrdersWithFilters,
   addOrder,
   updateOrder,
   deleteOrder,
@@ -55,6 +57,19 @@ const currentOrderId = ref<number | null>(null);
 // Filter state
 const selectedFruitId = ref<number | null>(null);
 const selectedCustomerId = ref<number | null>(null);
+
+// Pagination state
+const currentPage = ref(1);
+const pageSize = ref(10);
+const totalCount = ref(0);
+
+// Advanced filter state
+const showAdvancedFilters = ref(false);
+const orderNumber = ref('');
+const fromDate = ref<number | null>(null);
+const toDate = ref<number | null>(null);
+const selectedStatus = ref<string | null>(null);
+const selectedPaymentStatus = ref<string | null>(null);
 
 const formRef = ref<FormInst | null>(null)
 const formKey = ref(0)
@@ -101,6 +116,13 @@ const statusOptions = [
   { label: 'Dispatched', value: 'Dispatched' },
   { label: 'Delivered', value: 'Delivered' },
   { label: 'Canceled', value: 'Canceled' }
+];
+
+// Payment status options
+const paymentStatusOptions = [
+  { label: 'Unpaid', value: 'Unpaid' },
+  { label: 'Partial', value: 'Partial' },
+  { label: 'Paid', value: 'Paid' }
 ];
 
 // Reset form
@@ -307,23 +329,76 @@ const handleDelete = (id: number) => {
 };
 
 // Load orders with filters
-const loadOrders = () => {
-  fetchOrders(1, 10, selectedFruitId.value || undefined, selectedCustomerId.value || undefined);
+const loadOrders = async () => {
+  const count = await fetchOrders(currentPage.value, pageSize.value, selectedFruitId.value || undefined, selectedCustomerId.value || undefined);
+  totalCount.value = count || 0;
+};
+
+// Load orders with advanced filters
+const loadOrdersWithAdvancedFilters = async () => {
+  const count = await fetchOrdersWithFilters(
+    currentPage.value, 
+    pageSize.value, 
+    selectedFruitId.value || undefined, 
+    selectedCustomerId.value || undefined,
+    orderNumber.value || undefined,
+    fromDate.value ? new Date(fromDate.value).toISOString().split('T')[0] : undefined,
+    toDate.value ? new Date(toDate.value).toISOString().split('T')[0] : undefined,
+    selectedStatus.value || undefined,
+    selectedPaymentStatus.value || undefined
+  );
+  totalCount.value = count || 0;
+};
+
+// Clear advanced filters
+const clearAdvancedFilters = () => {
+  orderNumber.value = '';
+  fromDate.value = null;
+  toDate.value = null;
+  selectedStatus.value = null;
+  selectedPaymentStatus.value = null;
+  currentPage.value = 1; // Reset to first page when clearing filters
+  loadOrdersWithAdvancedFilters();
 };
 
 // Handle filter changes
 const handleFruitFilterChange = (value: number | null) => {
   selectedFruitId.value = value;
+  currentPage.value = 1; // Reset to first page when filter changes
   loadOrders();
 };
 
 const handleCustomerFilterChange = (value: number | null) => {
   selectedCustomerId.value = value;
+  currentPage.value = 1; // Reset to first page when filter changes
   loadOrders();
+};
+
+// Handle pagination changes
+const handlePageChange = (page: number) => {
+  currentPage.value = page;
+  if (showAdvancedFilters.value) {
+    loadOrdersWithAdvancedFilters();
+  } else {
+    loadOrders();
+  }
+};
+
+const handlePageSizeChange = (size: number) => {
+  pageSize.value = size;
+  currentPage.value = 1; // Reset to first page when page size changes
+  if (showAdvancedFilters.value) {
+    loadOrdersWithAdvancedFilters();
+  } else {
+    loadOrders();
+  }
 };
 
 // Table columns
 const columns = orderColumns(openEditDrawer, handleDelete);
+
+// Computed total count to ensure reactivity
+const computedTotalCount = computed(() => totalCount.value);
 
 // Load orders on mount
 loadOrders();
@@ -343,7 +418,8 @@ fetchFruits();
 
     <!-- Filters -->
     <n-card class="mb-4">
-      <div class="flex gap-4 items-end">
+      <!-- Basic Filters -->
+      <div class="flex gap-4 items-center mb-2">
         <n-form-item label="Filter by Fruit">
           <n-select v-model:value="selectedFruitId" placeholder="Select fruit" :options="fruits" clearable
             @update:value="handleFruitFilterChange" style="width: 200px" />
@@ -355,12 +431,71 @@ fetchFruits();
         <n-button @click="loadOrders" :loading="loading">
           Refresh
         </n-button>
+        <n-button @click="showAdvancedFilters = !showAdvancedFilters" type="info" ghost>
+          {{ showAdvancedFilters ? 'Hide' : 'Show' }} Advanced Filters
+        </n-button>
+      </div>
+
+      <!-- Advanced Filters -->
+      <div v-if="showAdvancedFilters" class="border-t pt-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <n-form-item label="Order Number">
+            <n-input v-model:value="orderNumber" placeholder="e.g., ORD-1234" />
+          </n-form-item>
+          <n-form-item label="From Date">
+            <n-date-picker v-model:value="fromDate" type="date" placeholder="From date" clearable />
+          </n-form-item>
+          <n-form-item label="To Date">
+            <n-date-picker v-model:value="toDate" type="date" placeholder="To date" clearable />
+          </n-form-item>
+          <n-form-item label="Status">
+            <n-select v-model:value="selectedStatus" placeholder="Select status" :options="statusOptions" clearable />
+          </n-form-item>
+          <n-form-item label="Payment Status">
+            <n-select v-model:value="selectedPaymentStatus" placeholder="Payment status" :options="paymentStatusOptions" clearable />
+          </n-form-item>
+          <div class="flex items-center">
+            <n-button @click="loadOrdersWithAdvancedFilters" type="primary" :loading="loading">
+              Search
+            </n-button>
+          </div>
+        </div>
+        <div class="mt-3 flex gap-2">
+          <n-button @click="clearAdvancedFilters" size="small" ghost>
+            Clear Filters
+          </n-button>
+        </div>
       </div>
     </n-card>
 
     <!-- Orders Table -->
     <n-card>
-      <n-data-table :columns="columns" :data="orders" :loading="loading" :pagination="{ pageSize: 10 }" striped />
+      <n-data-table 
+        :key="`orders-${currentPage}-${pageSize}-${totalCount}`"
+        :columns="columns" 
+        :data="orders" 
+        :loading="loading" 
+        :pagination="false"
+        striped 
+      />
+      
+      <!-- Custom Pagination -->
+      <div class="mt-4 flex justify-between items-center">
+        <div class="text-sm text-gray-600">
+          Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, computedTotalCount) }}
+          of {{ computedTotalCount }} entries
+        </div>
+        <n-pagination 
+          v-model:page="currentPage" 
+          v-model:page-size="pageSize"
+          :page-count="Math.ceil(computedTotalCount / pageSize)" 
+          :page-sizes="[2, 5, 10, 20, 50]" 
+          show-size-picker
+          show-quick-jumper 
+          @update:page="handlePageChange" 
+          @update:page-size="handlePageSizeChange" 
+        />
+      </div>
     </n-card>
 
     <!-- Order Drawer -->
