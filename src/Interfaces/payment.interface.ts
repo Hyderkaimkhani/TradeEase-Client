@@ -1,3 +1,17 @@
+export interface PaymentAllocation {
+  id: number;
+  paymentId: number;
+  referenceType: string;
+  referenceId: number;
+  allocatedAmount: number;
+  number: string;   //Supply / Order Number
+  operationDate: Date; // Supply / Order Date
+  truckNumber: string;
+  paymentStatus: string;
+  quantity: number;
+  price: number;
+  totalPrice: number;
+}
 export interface Payment {
   id: number;
   entityType: string;
@@ -8,6 +22,7 @@ export interface Payment {
   notes?: string;
   isActive: boolean;
   paymentBy?: string;
+  paymentAllocations?: PaymentAllocation[];
 }
 
 export interface CreatePaymentRequest {
@@ -38,4 +53,4 @@ export interface SinglePaymentResponse {
   model: Payment;
   isError: boolean;
   message: string;
-} 
+}
