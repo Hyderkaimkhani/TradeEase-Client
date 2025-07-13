@@ -6,7 +6,6 @@ export function usePayments() {
   const payments = ref<Payment[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
-  const totalCount = ref(0);
 
   const fetchPayments = async (page: number = 1, pageSize: number = 10, entityId?: number) => {
     loading.value = true;
@@ -14,16 +13,27 @@ export function usePayments() {
     try {
       let url = `/api/Payment?page=${page}&pageSize=${pageSize}`;
       if (entityId) url += `&entityId=${entityId}`;
+      console.log('Fetching payments from:', url);
       const response = await apiService.get<any>(url);
+      console.log('API Response:', response);
       if (response.isError) {
         error.value = response.message;
-        return;
+        return 0;
       }
       payments.value = response.model || [];
-      totalCount.value = response.totalCount || 0;
+      const totalCount = response.totalCount || 0;
+      console.log('Total count from API:', totalCount, 'Type:', typeof totalCount);
+      console.log('Response structure:', {
+        model: response.model,
+        totalCount: response.totalCount,
+        isError: response.isError,
+        message: response.message
+      });
+      return totalCount;
     } catch (err: any) {
       error.value = err.message || 'Failed to fetch payments';
       console.error(error.value);
+      return 0;
     } finally {
       loading.value = false;
     }
@@ -118,7 +128,6 @@ export function usePayments() {
     payments,
     loading,
     error,
-    totalCount,
     fetchPayments,
     addPayment,
     updatePayment,

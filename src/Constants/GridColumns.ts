@@ -584,14 +584,6 @@ export const paymentColumns = (openViewDrawer: any, handleDelete: any) => [
     }
   },
   {
-    title: 'Notes',
-    key: 'notes',
-    width: 200,
-    render(row: any) {
-      return row.notes || '-';
-    }
-  },
-  {
     title: 'Status',
     key: 'isActive',
     width: 100,

@@ -13,6 +13,7 @@ import {
   NInputNumber,
   NSelect,
   NDatePicker,
+  NPagination,
   useMessage,
 } from 'naive-ui';
 import { usePayments } from '../composables/usePayments';
@@ -21,7 +22,6 @@ import { paymentColumns } from '../Constants/GridColumns';
 import type { RuleType } from 'async-validator';
 import { EntityType, PaymentMethod } from '../Constants/Enums';
 import { useCustomers } from '../composables/useCustomers';
-import { is } from 'date-fns/locale';
 
 // Message API
 const message = useMessage();
@@ -48,6 +48,14 @@ const currentPaymentId = ref<number | null>(null);
 // Filter state
 const selectedEntityId = ref<number | null>(null);
 const selectedEntityType = ref<string | null>(null);
+
+// Pagination state
+const currentPage = ref(1);
+const pageSize = ref(10);
+const totalCount = ref<number>(0);
+
+// Computed total count to ensure reactivity
+const computedTotalCount = computed(() => totalCount.value);
 
 const formRef = ref<FormInst | null>(null);
 const formKey = ref(0);
@@ -282,14 +290,25 @@ const handleDelete = (id: number) => {
 };
 
 // Load payments with filters
-const loadPayments = () => {
-  fetchPayments(1, 10, selectedEntityId.value || undefined);
+const loadPayments = async () => {
+  const count = await fetchPayments(currentPage.value, pageSize.value, selectedEntityId.value || undefined);
+  totalCount.value = count || 0;
+  console.log('Loaded payments:', {
+    currentPage: currentPage.value,
+    pageSize: pageSize.value,
+    totalCount: totalCount.value,
+    paymentsCount: payments.value.length,
+    totalPages: Math.ceil((count || 0) / pageSize.value),
+    canGoNext: currentPage.value < Math.ceil((count || 0) / pageSize.value),
+    canGoPrev: currentPage.value > 1
+  });
 };
 
 // Handle filter changes
 const handleEntityTypeChange = (value: string | null) => {
   selectedEntityType.value = value;
   selectedEntityId.value = null;
+  currentPage.value = 1; // Reset to first page when filter changes
   if (value) {
     getCustomerSuppliersList(value as EntityType);
   }
@@ -298,15 +317,55 @@ const handleEntityTypeChange = (value: string | null) => {
 
 const handleEntityFilterChange = (value: number | null) => {
   selectedEntityId.value = value;
+  currentPage.value = 1; // Reset to first page when filter changes
+  loadPayments();
+};
+
+// Handle pagination changes
+const handlePageChange = (page: number) => {
+  currentPage.value = page;
+  loadPayments();
+};
+
+const handlePageSizeChange = (size: number) => {
+  pageSize.value = size;
+  currentPage.value = 1; // Reset to first page when page size changes
   loadPayments();
 };
 
 // Table columns
 const columns = paymentColumns(openViewDrawer, handleDelete);
 
+// Pagination configuration
+const paginationConfig = computed(() => {
+  console.log('Pagination config updated:', {
+    page: currentPage.value,
+    pageSize: pageSize.value,
+    itemCount: totalCount.value,
+    totalPages: Math.ceil(totalCount.value / pageSize.value)
+  });
+  
+  return {
+    page: currentPage.value,
+    pageSize: pageSize.value,
+    pageSizes: [2, 5, 10, 20, 50],
+    showSizePicker: true,
+    showQuickJumper: true,
+    itemCount: totalCount.value,
+    onUpdatePage: handlePageChange,
+    onUpdatePageSize: handlePageSizeChange,
+    prefix: () => `Total ${totalCount.value} items`
+  };
+});
+
 // Load payments on mount
 loadPayments();
 getCustomerSuppliersList();
+
+// Update total count when payments are loaded
+const updateTotalCount = (count: number) => {
+  totalCount.value = count;
+};
 
 </script>
 
@@ -338,7 +397,34 @@ getCustomerSuppliersList();
 
     <!-- Payments Table -->
     <n-card>
-      <n-data-table :columns="columns" :data="payments" :loading="loading" :pagination="{ pageSize: 10 }" striped />
+      <div class="mb-4 text-sm text-gray-600">
+        Total Records: {{ computedTotalCount }} | Current Page: {{ currentPage }} | Page Size: {{ pageSize }} | Total Pages: {{ Math.ceil(computedTotalCount / pageSize) }} | Can Go Next: {{ currentPage < Math.ceil(computedTotalCount / pageSize) }}
+      </div>
+      <n-data-table 
+        :key="`payments-${currentPage}-${pageSize}-${totalCount}`"
+        :columns="columns" 
+        :data="payments" 
+        :loading="loading" 
+        :pagination="false"
+        striped 
+      />
+      
+      <!-- Custom Pagination -->
+      <div class="mt-4 flex justify-between items-center">
+        <div class="text-sm text-gray-600">
+          Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, computedTotalCount) }} of {{ computedTotalCount }} entries
+        </div>
+        <n-pagination
+          v-model:page="currentPage"
+          v-model:page-size="pageSize"
+          :page-count="Math.ceil(computedTotalCount / pageSize)"
+          :page-sizes="[2, 5, 10, 20, 50]"
+          show-size-picker
+          show-quick-jumper
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
+      </div>
     </n-card>
 
     <!-- Payment Drawer -->
