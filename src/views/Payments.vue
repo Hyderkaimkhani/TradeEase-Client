@@ -364,7 +364,7 @@ const paginationConfig = computed(() => {
   return {
     page: currentPage.value,
     pageSize: pageSize.value,
-    pageSizes: [2, 5, 10, 20, 50],
+    pageSizes: [10, 20, 50],
     showSizePicker: true,
     showQuickJumper: true,
     itemCount: totalCount.value,

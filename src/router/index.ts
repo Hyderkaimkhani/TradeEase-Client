@@ -8,6 +8,7 @@ import Trucks from '../views/Trucks.vue'
 import Supplies from '../views/Supplies.vue'
 import Orders from '../views/Orders.vue'
 import Payments from '../views/Payments.vue'
+import Bills from '../views/Bills.vue'
 import SamplePage from '../views/SamplePage.vue'
 
 // Define routes
@@ -61,6 +62,11 @@ const routes: RouteRecordRaw[] = [
         path: 'payments',
         name: 'Payments',
         component: Payments
+      },
+       {
+        path: 'bills',
+        name: 'Bills',
+        component: Bills
       },
       {
         path: 'sample',

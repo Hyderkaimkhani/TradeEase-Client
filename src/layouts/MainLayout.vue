@@ -21,7 +21,8 @@ import {
   MenuOutline as MenuIcon,
   CubeOutline as SupplyIcon,
   DocumentTextOutline as OrderIcon,
-  WalletOutline as PaymentIcon
+  WalletOutline as PaymentIcon,
+  ReceiptOutline as BillIcon
 } from '@vicons/ionicons5';
 
 // Router
@@ -74,6 +75,12 @@ const menuOptions = [
     key: 'payments',
     icon: PaymentIcon,
     path: '/app/payments'
+  },
+  {
+    label: 'Bills',
+    key: 'bills',
+    icon: BillIcon,
+    path: '/app/bills'
   },
   {
     label: 'Trucks',

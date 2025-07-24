@@ -671,3 +671,140 @@ export const paymentColumns = (openViewDrawer: any, handleDelete: any) => [
     }
   }
 ];
+
+export const billColumns = (viewBill: any, handleDeleteBill: any, openEditDrawer: any) => [
+  {
+    title: 'Bill Number',
+    key: 'billNumber',
+    width: 150,
+  },
+  {
+    title: 'Entity',
+    key: 'entityName',
+    width: 200,
+  },
+  {
+    title: 'Bill Date',
+    key: 'billDate',
+    width: 120,
+    render(row: any) {
+      return new Date(row.billDate).toLocaleDateString();
+    },
+  },
+  {
+    title: 'Due Date',
+    key: 'dueDate',
+    width: 120,
+    render(row: any) {
+      return new Date(row.dueDate).toLocaleDateString();
+    },
+  },
+  {
+    title: 'Total Amount',
+    key: 'totalAmount',
+    width: 150,
+    render(row: any) {
+      return `Rs. ${row.totalAmount.toLocaleString()}`;
+    },
+  },
+  {
+    title: 'Balance',
+    key: 'balance',
+    width: 150,
+    render(row: any) {
+      return `Rs. ${row.balance.toLocaleString()}`;
+    },
+  },
+  {
+    title: 'Status',
+    key: 'paymentStatus',
+    width: 100,
+    render(row: any) {
+      const statusType = row.paymentStatus === 'Paid' ? 'success' : row.paymentStatus === 'Partial' ? 'warning' : 'error';
+      return h(
+        NTag,
+        {
+          type: statusType,
+          size: 'small',
+          bordered: false,
+        },
+        {
+          default: () => row.paymentStatus,
+        }
+      );
+    },
+  },
+  {
+    title: 'Actions',
+    key: 'actions',
+    width: 120,
+    render(row: any) {
+      return h(
+        NSpace,
+        {
+          justify: 'center',
+          align: 'center',
+        },
+        {
+          default: () => [
+            h(
+              NButton,
+              {
+                quaternary: true,
+                circle: true,
+                onClick: () => viewBill(row)
+              },
+              {
+                default: () => h(
+                  NIcon,
+                  { color: 'rgb(0, 82, 204)' },
+                  { default: () => h(EyeIcon) }
+                )
+              }
+            ),
+            h(
+              NButton,
+              {
+                quaternary: true,
+                circle: true,
+                onClick: () => openEditDrawer(row)
+              },
+              {
+                default: () => h(
+                  NIcon,
+                  { color: 'orange' },
+                  { default: () => h(EditIcon) }
+                )
+              }
+            ),
+            h(
+              NPopconfirm,
+              {
+                onPositiveClick: () => handleDeleteBill(row.id),
+                negativeText: 'Cancel',
+                positiveText: 'Delete',
+              },
+              {
+                trigger: () => h(
+                  NButton,
+                  {
+                    quaternary: true,
+                    circle: true,
+                  },
+                  {
+                    default: () => h(
+                      NIcon,
+                      { color: 'red' },
+                      { default: () => h(DeleteIcon) }
+                    )
+                  }
+                ),
+                default: () => 'Are you sure you want to delete this bill?',
+              }
+            ),
+          ],
+        }
+      );
+    },
+  },
+];
