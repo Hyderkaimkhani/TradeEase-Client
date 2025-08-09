@@ -132,6 +132,152 @@ export const customerColumns=(openEditDrawer:any, handleDelete:any)=> [
   }
 ];
 
+export const accountColumns=(openEditDrawer:any, handleDelete:any)=> [
+  {
+    title: 'Name',
+    key: 'name',
+    width: 160
+  },
+  {
+    title: 'Type',
+    key: 'type',
+    width: 120,
+    render(row: any) {
+      const type = row.type;
+      const typeMap: Record<string, any> = {
+        Cash: 'success',
+        Bank: 'info',
+        Wallet: 'warning',
+        Savings: 'success',
+        Loan: 'error',
+        Investment: 'info',
+        Others: 'default',
+        Receivable: 'success',
+        Payable: 'error'
+      }
+      return h(
+        NTag,
+        { type: typeMap[type] || 'default', size: 'small', bordered: false },
+        { default: () => type }
+      )
+    }
+  },
+  {
+    title: 'Account #',
+    key: 'accountNumber',
+    width: 140,
+  },
+  {
+    title: 'Bank',
+    key: 'bankName',
+    width: 140,
+  },
+  {
+    title: 'Opening Balance',
+    key: 'openingBalance',
+    width: 140,
+    render(row: any) {
+      return h(
+        NTag,
+        { bordered: false, type: 'info', size: 'small' },
+        { default: () => `Rs. ${Number(row.openingBalance || 0).toFixed(2)}` }
+      );
+    }
+  },
+  {
+    title: 'Current Balance',
+    key: 'currentBalance',
+    width: 140,
+    render(row: any) {
+      const value = Number(row.currentBalance || 0);
+      const statusType = value >= 0 ? 'success' : 'error';
+      return h(
+        NTag,
+        { bordered: false, type: statusType, size: 'small' },
+        { default: () => `Rs. ${value.toFixed(2)}` }
+      );
+    }
+  },
+  {
+    title: 'Status',
+    key: 'isActive',
+    width: 100,
+    render(row: any) {
+      const isActive = row.isActive === true;
+      return h(
+        NTag,
+        { type: isActive ? 'success' : 'error', size: 'small', bordered: false },
+        { default: () => (isActive ? 'Active' : 'Inactive') }
+      );
+    }
+  },
+  {
+    title: 'Created',
+    key: 'createdDate',
+    width: 130,
+    render(row: any) {
+      if (!row.createdDate) return '-';
+      return new Date(row.createdDate).toLocaleDateString();
+    }
+  },
+  {
+    title: 'Actions',
+    key: 'actions',
+    width: 120,
+    render(row: any) {
+      const isSystemType = row.type === 'Receivable' || row.type === 'Payable';
+      const canDelete = !isSystemType && Number(row.currentBalance || 0) === 0 && row.isActive;
+      return h(
+        NSpace,
+        { justify: 'center', align: 'center' },
+        {
+          default: () => [
+            h(
+              NButton,
+              {
+                quaternary: true,
+                circle: true,
+                disabled: isSystemType,
+                onClick: () => !isSystemType && openEditDrawer(row)
+              },
+              {
+                default: () => h(
+                  NIcon,
+                  { color: isSystemType ? 'rgba(0,0,0,0.2)' : 'rgb(0, 82, 204)' },
+                  { default: () => h(EditIcon) }
+                )
+              }
+            ),
+            h(
+              NPopconfirm,
+              {
+                onPositiveClick: () => canDelete && handleDelete(row.id),
+                negativeText: 'Cancel',
+                positiveText: 'Delete',
+                disabled: !canDelete
+              },
+              {
+                trigger: () => h(
+                  NButton,
+                  { quaternary: true, circle: true, disabled: !canDelete },
+                  {
+                    default: () => h(
+                      NIcon,
+                      { color: canDelete ? 'rgb(255, 86, 48)' : 'rgba(0,0,0,0.2)' },
+                      { default: () => h(DeleteIcon) }
+                    )
+                  }
+                ),
+                default: () => 'Are you sure you want to delete this account?'
+              }
+            )
+          ]
+        }
+      );
+    }
+  }
+];
+
 export const supplyColumns=(openEditDrawer:any, handleDelete:any)=> [
   
   {

@@ -24,6 +24,7 @@ import {
   WalletOutline as PaymentIcon,
   ReceiptOutline as BillIcon
 } from '@vicons/ionicons5';
+import { CardOutline as AccountIcon } from '@vicons/ionicons5'
 
 // Router
 const router = useRouter();
@@ -57,6 +58,12 @@ const menuOptions = [
     key: 'customers',
     icon: PeopleIcon,
     path: '/app/customers'
+  },
+  {
+    label: 'Accounts',
+    key: 'accounts',
+    icon: AccountIcon,
+    path: '/app/accounts'
   },
   {
     label: 'Supplies',
