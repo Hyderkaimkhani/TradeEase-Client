@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, h } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import {
   NButton,
   NCard,
@@ -11,8 +11,7 @@ import {
   NFormItem,
   NInput,
   NInputNumber,
-  NSelect,
-
+  NPagination,
   useMessage
 } from 'naive-ui';
 import { useCustomers } from '../composables/useCustomers';
@@ -32,6 +31,41 @@ const {
   deleteCustomer
 } = useCustomers();
 
+// Pagination state
+const currentPage = ref(1);
+const pageSize = ref(10);
+const totalCount = computed(() => filteredCustomers.value.length);
+
+// Search state
+const searchTerm = ref('');
+
+// Computed: Filtered customers by search term
+const filteredCustomers = computed(() => {
+  if (!searchTerm.value) return customers.value;
+  const term = searchTerm.value.toLowerCase();
+  return customers.value.filter(c =>
+    (c.name && c.name.toLowerCase().includes(term)) ||
+    (c.phone && c.phone.toLowerCase().includes(term)) ||
+    (c.address && c.address.toLowerCase().includes(term)) ||
+    (c.city && c.city.toLowerCase().includes(term))
+  );
+});
+
+// Computed: Paginated customers
+const paginatedCustomers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  return filteredCustomers.value.slice(start, start + pageSize.value);
+});
+
+// Pagination handlers
+const handlePageChange = (page: number) => {
+  currentPage.value = page;
+};
+const handlePageSizeChange = (size: number) => {
+  pageSize.value = size;
+  currentPage.value = 1;
+};
+
 // Drawer state
 const showDrawer = ref(false);
 const formTitle = ref('Add Customer');
@@ -45,7 +79,6 @@ const formData = reactive({
   phone: '',
   address: '',
   city: '',
-  entityType: '',
   creditBalance: 0,
   paymentTerms: '',
 });
@@ -56,30 +89,17 @@ const resetForm = () => {
   formData.phone = '';
   formData.address = '';
   formData.city = '';
-  formData.entityType = '';
   formData.creditBalance = 0;
   formData.paymentTerms = '';
   isEditing.value = false;
   currentCustomerId.value = null;
 };
 
-const entityTypeOptions = [
-  { label: 'Customer', value: 'Customer' },
-  { label: 'Supplier', value: 'Supplier' }
-]
-
 const rules = {
   name: [
     {
       required: true,
       message: 'Name is required',
-      trigger: ['input', 'blur']
-    }
-  ],
-  entityType: [
-    {
-      required: true,
-      message: 'Entity type is required',
       trigger: ['input', 'blur']
     }
   ],
@@ -163,16 +183,46 @@ fetchCustomers();
 
 <template>
   <div>
-    <div class="flex justify-between items-center mb-6">
+
+    <!-- <div class="flex justify-between items-center mb-1">
       <h1 class="text-2xl font-bold">Customers</h1>
       <n-button type="primary" @click="openAddDrawer">
         Add Customer
       </n-button>
+    </div> -->
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+      <h1 class="text-2xl font-bold">Customers</h1>
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <!-- <n-input v-model:value="accountSearch" placeholder="Search by Account #" class="w-full sm:w-64"
+          @keydown.enter="handleSearch" />
+        <n-button tertiary @click="handleSearch">Search</n-button> -->
+        <n-input v-model:value="searchTerm" placeholder="Search customers..." clearable  class="w-full sm:w-64" />
+        <n-button type="primary" @click="openAddDrawer">Add Customer</n-button>
+      </div>
     </div>
 
-    <!-- Customers Table -->
+    <!-- Search and Table -->
+    <!-- <n-card class="mb-1">
+      <div class="flex gap-4 items-center">
+         <n-form-item label="Search"> 
+        <n-input v-model:value="searchTerm" placeholder="Search customers..." clearable style="width: 250px" />
+      </div>
+    </n-card> -->
+
     <n-card>
-      <n-data-table :columns="columns" :data="customers" :loading="loading" :pagination="{ pageSize: 10 }" striped />
+      <n-data-table :columns="columns" :data="paginatedCustomers" :loading="loading" :pagination="false" striped />
+
+      <!-- Custom Pagination -->
+      <div class="mt-4 flex justify-between items-center">
+        <div class="text-sm text-gray-600">
+          Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalCount) }} of {{
+          totalCount }} entries
+        </div>
+        <n-pagination v-model:page="currentPage" v-model:page-size="pageSize"
+          :page-count="Math.ceil(totalCount / pageSize)" :page-sizes="[2, 5, 10, 20, 50]" show-size-picker
+          show-quick-jumper @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+      </div>
     </n-card>
 
     <!-- Customer Drawer -->
@@ -183,10 +233,6 @@ fetchCustomers();
             <n-input v-model:value="formData.name" placeholder="Customer name" />
           </n-form-item>
 
-          <n-form-item label="Entity Type" path="entityType" required>
-            <n-select v-model:value="formData.entityType" placeholder="Select entity type" :disabled="isEditing"
-              :options="entityTypeOptions" />
-          </n-form-item>
 
           <n-form-item label="Phone" path="phone" required>
             <n-input v-model:value="formData.phone" placeholder="Phone number" />
@@ -194,7 +240,8 @@ fetchCustomers();
 
           <div class="grid grid-cols-2 gap-4">
             <n-form-item label="Credit Balance" path="creditBalance">
-              <n-input-number v-model:value="formData.creditBalance" placeholder="Credit Balance" />
+              <n-input-number v-model:value="formData.creditBalance" placeholder="Credit Balance"
+                :disabled="isEditing" />
             </n-form-item>
           </div>
           <n-form-item label="Address" path="address">

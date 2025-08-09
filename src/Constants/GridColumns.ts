@@ -9,11 +9,6 @@ export const customerColumns=(openEditDrawer:any, handleDelete:any)=> [
     width: 140
   },
   {
-    title: 'Entity Type',
-    key: 'entityType',
-    width: 140
-  },
-  {
     title: 'Payment Terms',
     key: 'paymentTerms',
     width: 130
@@ -672,11 +667,6 @@ export const orderColumns=(openEditDrawer:any, handleDelete:any)=> [
 ];
 
 export const paymentColumns = (openViewDrawer: any, handleDelete: any) => [
-  {
-    title: 'Entity Type',
-    key: 'entityType',
-    width: 120
-  },
   {
     title: 'Entity Name',
     key: 'paymentBy',

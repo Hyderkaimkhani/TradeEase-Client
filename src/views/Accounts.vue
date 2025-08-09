@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive,computed } from 'vue'
 import { 
   NButton,
   NCard,
@@ -36,6 +36,21 @@ const {
 const page = ref(1)
 const pageSize = ref(10)
 const accountSearch = ref('')
+
+// Search state
+const searchTerm = ref('');
+
+// Computed: Filtered Accounts by search term
+const filteredAccounts = computed(() => {
+  if (!searchTerm.value) return accounts.value;
+  const term = searchTerm.value.toLowerCase();
+  return accounts.value.filter(a =>
+    (a.name && a.name.toLowerCase().includes(term)) ||
+    (a.bankName && a.bankName.toLowerCase().includes(term)) ||
+    (a.type && a.type.toLowerCase().includes(term)) ||
+    (a.accountNumber && a.accountNumber.toLowerCase().includes(term))
+  );
+});
 
 // Drawer state
 const showDrawer = ref(false)
@@ -185,12 +200,13 @@ fetchAccounts(page.value, pageSize.value)
 
 <template>
   <div>
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
       <h1 class="text-2xl font-bold">Accounts</h1>
       <div class="flex items-center gap-2 w-full sm:w-auto">
         <n-input v-model:value="accountSearch" placeholder="Search by Account #" class="w-full sm:w-64"
           @keydown.enter="handleSearch" />
         <n-button tertiary @click="handleSearch">Search</n-button>
+        <!-- <n-input v-model:value="searchTerm" placeholder="Search Account" clearable  class="w-full sm:w-64" /> -->
         <n-button type="primary" @click="openAddDrawer">Add Account</n-button>
       </div>
     </div>

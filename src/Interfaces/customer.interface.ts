@@ -1,11 +1,9 @@
 export interface Customer {
     id: number;
     name: string;
-    email: string;
     phone: string;
+    creditBalance: number;
     address: string;
     city: string;
-    state: string;
-    zipCode: string;
-    status: 'active' | 'inactive';
+    paymentTerms: string;
 }
