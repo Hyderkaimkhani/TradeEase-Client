@@ -20,13 +20,15 @@ export function useSupplies() {
             
             if (response.isError) {
                 error.value = response.message;
-                return;
+                return 0;
             }
             
             supplies.value = response.model || [];
+            return response.totalCount || 0;
         } catch (err: any) {
             error.value = err.message || 'Failed to fetch supplies';
             console.error(error.value);
+            return 0;
         } finally {
             loading.value = false;
         }

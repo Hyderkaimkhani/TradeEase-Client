@@ -14,6 +14,7 @@ import {
   NSelect,
   NDatePicker,
   useMessage,
+  NPagination
 } from 'naive-ui';
 import { useSupplies } from '../composables/useSupplies';
 import { FormInst } from 'naive-ui';
@@ -35,9 +36,31 @@ const {
   deleteSupply,
 } = useSupplies();
 
+// Pagination state
+const currentPage = ref(1);
+const pageSize = ref(10);
+const totalCount = ref(0);
+
+// Computed: Paginated supplies
+const paginatedSupplies = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  return supplies.value.slice(start, start + pageSize.value);
+});
+
+// Pagination handlers
+const handlePageChange = (page: number) => {
+  currentPage.value = page;
+  loadSupplies();
+};
+const handlePageSizeChange = (size: number) => {
+  pageSize.value = size;
+  currentPage.value = 1;
+  loadSupplies();
+};
+
 const
   { entityList,
-    getCustomerSuppliersList
+    getCustomersList
   } = useCustomers();
 
 const
@@ -272,8 +295,9 @@ const handleDelete = (id: number) => {
 };
 
 // Load supplies with filters
-const loadSupplies = () => {
-  fetchSupplies(1, 10, selectedFruitId.value || undefined, selectedSupplierId.value || undefined);
+const loadSupplies = async () => {
+  const count = await fetchSupplies(currentPage.value, pageSize.value, selectedFruitId.value || undefined, selectedSupplierId.value || undefined);
+  totalCount.value = count || 0;
 };
 
 // Handle filter changes
@@ -289,10 +313,11 @@ const handleSupplierFilterChange = (value: number | null) => {
 
 // Table columns
 const columns = supplyColumns(openEditDrawer, handleDelete);
+const computedTotalCount = computed(() => totalCount.value);
 
 // Load supplies on mount
 loadSupplies();
-getCustomerSuppliersList(EntityType.Supplier);
+getCustomersList();
 fetchFruits();
 
 </script>
@@ -325,7 +350,30 @@ fetchFruits();
 
     <!-- Supplies Table -->
     <n-card>
-      <n-data-table :columns="columns" :data="supplies" :loading="loading" :pagination="{ pageSize: 10 }" striped />
+      <n-data-table
+        :columns="columns"
+        :data="supplies"
+        :loading="loading"
+        :pagination="false"
+        striped
+      />
+
+      <!-- Custom Pagination -->
+      <div class="mt-4 flex justify-between items-center">
+        <div class="text-sm text-gray-600">
+          Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, computedTotalCount) }} of {{ computedTotalCount }} entries
+        </div>
+        <n-pagination
+          v-model:page="currentPage"
+          v-model:page-size="pageSize"
+          :page-count="Math.ceil(computedTotalCount / pageSize)"
+          :page-sizes="[2, 5, 10, 20, 50]"
+          show-size-picker
+          show-quick-jumper
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
+      </div>
     </n-card>
 
     <!-- Supply Drawer -->
