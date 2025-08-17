@@ -25,10 +25,15 @@ import {
   ReceiptOutline as BillIcon
 } from '@vicons/ionicons5';
 import { CardOutline as AccountIcon } from '@vicons/ionicons5'
+import { useAuth } from '../composables/useAuth';
 
 // Router
 const router = useRouter();
 const route = useRoute();
+
+const {
+  logout
+} = useAuth();
 
 // Responsive sidebar
 const collapsed = ref(window.innerWidth <= 768);
@@ -145,6 +150,7 @@ const handleUserSelect = (key: string) => {
     router.push('/app/profile');
   } else if (key === 'logout') {
     // Clear auth and redirect to login
+    logout()
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('user');
     router.push('/login');

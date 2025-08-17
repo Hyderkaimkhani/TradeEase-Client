@@ -67,8 +67,8 @@ export const customerColumns=(openEditDrawer:any, handleDelete:any)=> [
       return h(
         NSpace,
         {
-          justify: 'center',
-          align: 'center'
+          justify: 'start',
+          align: 'start'
         },
         {
           default: () => [
@@ -224,7 +224,7 @@ export const accountColumns=(openEditDrawer:any, handleDelete:any)=> [
       const canDelete = !isSystemType && Number(row.currentBalance || 0) === 0 && row.isActive;
       return h(
         NSpace,
-        { justify: 'center', align: 'center' },
+        { justify: 'start', align: 'start' },
         {
           default: () => [
             h(
@@ -387,8 +387,8 @@ export const supplyColumns=(openEditDrawer:any, handleDelete:any)=> [
       return h(
         NSpace,
         {
-          justify: 'center',
-          align: 'center'
+          justify: 'start',
+          align: 'start'
         },
         {
           default: () => [
@@ -606,8 +606,8 @@ export const orderColumns=(openEditDrawer:any, handleDelete:any)=> [
       return h(
         NSpace,
         {
-          justify: 'center',
-          align: 'center'
+          justify: 'start',
+          align: 'start'
         },
         {
           default: () => [
@@ -669,7 +669,7 @@ export const orderColumns=(openEditDrawer:any, handleDelete:any)=> [
 export const paymentColumns = (openViewDrawer: any, handleDelete: any) => [
   {
     title: 'Entity Name',
-    key: 'paymentBy',
+    key: 'customerName',
     width: 150
   },
   {
@@ -720,6 +720,26 @@ export const paymentColumns = (openViewDrawer: any, handleDelete: any) => [
     }
   },
   {
+    title: 'Transaction Type',
+    key: 'transactionFlow',
+    width: 140,
+    render(row: any) {
+      const method = row.transactionFlow;
+      const methodType = method === 'Received' ? 'success' : method === 'Paid' ? 'error' : 'default';
+      return h(
+        NTag,
+        {
+          type: methodType,
+          size: 'small',
+          bordered: false
+        },
+        {
+          default: () => method
+        }
+      );
+    }
+  },
+  {
     title: 'Status',
     key: 'isActive',
     width: 100,
@@ -748,8 +768,8 @@ export const paymentColumns = (openViewDrawer: any, handleDelete: any) => [
       return h(
         NSpace,
         {
-          justify: 'center',
-          align: 'center'
+          justify: 'start',
+          align: 'start'
         },
         {
           default: () => [
@@ -878,8 +898,8 @@ export const billColumns = (viewBill: any, handleDeleteBill: any, openEditDrawer
       return h(
         NSpace,
         {
-          justify: 'center',
-          align: 'center',
+          justify: 'start',
+          align: 'start',
         },
         {
           default: () => [

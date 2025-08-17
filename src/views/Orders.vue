@@ -40,7 +40,7 @@ const {
 
 const
   { entityList,
-    getCustomerSuppliersList
+    getCustomersList
   } = useCustomers();
 
 const
@@ -402,7 +402,7 @@ const computedTotalCount = computed(() => totalCount.value);
 
 // Load orders on mount
 loadOrders();
-getCustomerSuppliersList(EntityType.Customer);
+getCustomersList();
 fetchFruits();
 
 </script>
@@ -489,7 +489,7 @@ fetchFruits();
           v-model:page="currentPage" 
           v-model:page-size="pageSize"
           :page-count="Math.ceil(computedTotalCount / pageSize)" 
-          :page-sizes="[2, 5, 10, 20, 50]" 
+          :page-sizes="[10, 20, 50]" 
           show-size-picker
           show-quick-jumper 
           @update:page="handlePageChange" 

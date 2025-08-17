@@ -14,7 +14,7 @@ export function useOrders() {
         try {
             let url = `/api/Orders?page=${page}&pageSize=${pageSize}`;
             if (fruitId) url += `&fruitId=${fruitId}`;
-            if (customerId) url += `&customerId=${customerId}`;
+            if (customerId) url += `&entityId=${customerId}`;
             
             const response = await apiService.get<Order[]>(url);
             
@@ -51,7 +51,7 @@ export function useOrders() {
         try {
             let url = `/api/Orders?page=${page}&pageSize=${pageSize}`;
             if (fruitId) url += `&fruitId=${fruitId}`;
-            if (customerId) url += `&customerId=${customerId}`;
+            if (customerId) url += `&entityId=${customerId}`;
             if (orderNumber) url += `&orderNumber=${orderNumber}`;
             if (fromDate) url += `&fromDate=${fromDate}`;
             if (toDate) url += `&toDate=${toDate}`;

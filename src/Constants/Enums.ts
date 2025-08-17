@@ -27,3 +27,8 @@ export enum PaymentMethod {
   BankTransfer = "Bank Transfer",
   MobilePayment = "Mobile Payment"
 }
+
+export enum TransactionDirection  {
+  Debit  = "Received",
+  Credit = "Paid"
+}

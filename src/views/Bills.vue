@@ -43,7 +43,7 @@ const {
   deleteBill,
 } = useBills();
 
-const { entityList, getCustomerSuppliersList } = useCustomers();
+const { entityList, getCustomersList } = useCustomers();
 
 // Pagination state
 const currentPage = ref(1);
@@ -99,7 +99,7 @@ const handleEntityTypeChange = (value: string | null) => {
   formData.entityId = null;
   currentPage.value = 1;
   if (value) {
-    getCustomerSuppliersList(value as EntityType);
+    getCustomersList();
   }
   loadBills();
 };
@@ -147,7 +147,7 @@ const handleCreateBill = async () => {
 const viewBill = async (billId: number) => {
   try {
     const bill = await getBillById(billId);
-    currentBill.value = bill;
+    //currentBill.value = bill;
     showBillModal.value = true;
   } catch (error: any) {
     message.error(error.message || 'Failed to fetch bill details');
@@ -197,16 +197,16 @@ const openViewDrawer = async (row: any) => {
       message.error('Bill not found.');
       return;
     }
-    currentBill.value = bill;
+    // currentBill.value = bill;
     formTitle.value = 'View Bill';
     isViewing.value = true;
     isEditing.value = false;
     currentBillId.value = row.id;
     // Fill formData for view
-    formData.entityType = currentBill.value.entityType;
-    formData.entityId = currentBill.value.entityId;
-    formData.dueDate = currentBill.value.dueDate;
-    formData.notes = currentBill.value.notes;
+    // formData.entityType = currentBill.value.entityType;
+    // formData.entityId = currentBill.value.entityId;
+    // formData.dueDate = currentBill.value.dueDate;
+    // formData.notes = currentBill.value.notes;
     showDrawer.value = true;
   } catch (error: any) {
     message.error(error.message || 'Failed to fetch bill details');
@@ -224,16 +224,16 @@ const openEditDrawer = async (row: any) => {
       message.error('Bill not found.');
       return;
     }
-    currentBill.value = bill;
+    // currentBill.value = bill;
     formTitle.value = 'Edit Bill';
     isViewing.value = false;
     isEditing.value = true;
     currentBillId.value = row.id;
     // Fill formData for edit
-    formData.entityType = currentBill.value.entityType;
-    formData.entityId = currentBill.value.entityId;
-    formData.dueDate = currentBill.value.dueDate;
-    formData.notes = currentBill.value.notes;
+    // formData.entityType = currentBill.value.entityType;
+    // formData.entityId = currentBill.value.entityId;
+    // formData.dueDate = currentBill.value.dueDate;
+    // formData.notes = currentBill.value.notes;
     showDrawer.value = true;
   } catch (error: any) {
     message.error(error.message || 'Failed to fetch bill details');
@@ -261,7 +261,7 @@ const columns = billColumns(openViewDrawer, handleDeleteBill, openEditDrawer);
 
 // Load bills on mount
 loadBills();
-getCustomerSuppliersList();
+getCustomersList();
 </script>
 
 <template>
@@ -276,10 +276,6 @@ getCustomerSuppliersList();
     <!-- Filters -->
     <n-card class="mb-4">
       <div class="flex gap-4 items-center">
-        <n-form-item label="Filter by Entity Type">
-          <n-select v-model:value="selectedEntityType" placeholder="Select entity type" :options="entityTypeOptions"
-            clearable @update:value="handleEntityTypeChange" style="width: 200px" />
-        </n-form-item>
         <n-form-item label="Filter by Entity">
           <n-select v-model:value="selectedEntityId" placeholder="Select entity" :options="entityList" filterable
             clearable @update:value="handleEntityFilterChange" style="width: 200px" />
@@ -292,31 +288,18 @@ getCustomerSuppliersList();
 
     <!-- Bills Table -->
     <n-card>
-      <n-data-table 
-        :key="`bills-${currentPage}-${pageSize}-${totalCount}`"
-        :columns="columns" 
-        :data="bills" 
-        :loading="loading" 
-        :pagination="false"
-        striped 
-      />
-      
+      <n-data-table :key="`bills-${currentPage}-${pageSize}-${totalCount}`" :columns="columns" :data="bills"
+        :loading="loading" :pagination="false" striped />
+
       <!-- Custom Pagination -->
       <div class="mt-4 flex justify-between items-center">
         <div class="text-sm text-gray-600">
           Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, computedTotalCount) }}
           of {{ computedTotalCount }} entries
         </div>
-        <n-pagination 
-          v-model:page="currentPage" 
-          v-model:page-size="pageSize"
-          :page-count="Math.ceil(computedTotalCount / pageSize)" 
-          :page-sizes="[2, 5, 10, 20, 50]" 
-          show-size-picker
-          show-quick-jumper 
-          @update:page="handlePageChange" 
-          @update:page-size="handlePageSizeChange" 
-        />
+        <n-pagination v-model:page="currentPage" v-model:page-size="pageSize"
+          :page-count="Math.ceil(computedTotalCount / pageSize)" :page-sizes="[2, 5, 10, 20, 50]" show-size-picker
+          show-quick-jumper @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
       </div>
     </n-card>
 
@@ -325,10 +308,6 @@ getCustomerSuppliersList();
       <n-drawer-content :title="formTitle" closable>
         <n-form :model="formData" label-placement="top">
           <div class="grid grid-cols-2 gap-4">
-            <n-form-item label="Entity Type" required>
-              <n-select v-model:value="formData.entityType" placeholder="Select entity type" :options="entityTypeOptions"
-                clearable @update:value="val => { formData.entityType = val; if(val) getCustomerSuppliersList(val as EntityType); }" />
-            </n-form-item>
             <n-form-item label="Entity" required>
               <n-select v-model:value="formData.entityId" placeholder="Select entity" :options="entityList" filterable
                 clearable />
@@ -344,7 +323,7 @@ getCustomerSuppliersList();
           </div>
 
           <div class="grid grid-cols-2 gap-4">
-            
+
           </div>
 
           <n-form-item label="Notes">
@@ -424,7 +403,7 @@ getCustomerSuppliersList();
 
         <div class="flex justify-end">
           <div class="w-64 space-y-2">
-            
+
             <div class="flex justify-between font-bold border-t pt-2">
               <span>Total:</span>
               <span>Rs. {{ currentBill.totalAmount.toLocaleString() }}</span>
@@ -442,7 +421,7 @@ getCustomerSuppliersList();
 
         <div class="flex justify-end space-x-2">
           <!-- handleGeneratePDF(currentBill.id) -->
-          <n-button @click="" type="primary"> 
+          <n-button @click="" type="primary">
             Download PDF
           </n-button>
           <n-button @click="" type="success">

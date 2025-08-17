@@ -20,10 +20,12 @@ import { usePayments } from '../composables/usePayments';
 import { FormInst } from 'naive-ui';
 import { paymentColumns } from '../Constants/GridColumns';
 import type { RuleType } from 'async-validator';
-import { EntityType, PaymentMethod } from '../Constants/Enums';
+import { PaymentMethod, TransactionDirection } from '../Constants/Enums';
 import { useCustomers } from '../composables/useCustomers';
 import { useRouter } from 'vue-router';
 import { PaymentAllocation } from '../Interfaces/payment.interface';
+import { useAccounts } from '../composables/useAccounts';
+import { tr } from 'date-fns/locale';
 
 // Message API
 const message = useMessage();
@@ -39,8 +41,10 @@ const {
   getPaymentById,
 } = usePayments();
 
-const { entityList, getCustomerSuppliersList } = useCustomers();
+const { entityList, getCustomersList } = useCustomers();
 const router = useRouter();
+
+const { accountList, getAccountsDropdown } = useAccounts();
 
 // Drawer state
 const showDrawer = ref(false);
@@ -51,7 +55,8 @@ const currentPaymentId = ref<number | null>(null);
 
 // Filter state
 const selectedEntityId = ref<number | null>(null);
-const selectedEntityType = ref<string | null>(null);
+const selectedTransactionFlow = ref<string | null>(null);
+const selectedAccountId = ref<string | null>(null);
 
 // Pagination state
 const currentPage = ref(1);
@@ -75,20 +80,28 @@ const resetForm = () => {
 
 // Form model
 const formData = reactive({
-  entityType: null as string | null,
+  transactionFlow: null as string | null,
+  accountId: null as number | null,
   entityId: null as number | null,
   paymentBy: null as string | null,
   amount: 0,
   paymentDate: '',
+  accountName: '',
+  customerName: '',
   paymentMethod: PaymentMethod.Cash,
   notes: '',
   paymentAllocations: [] as PaymentAllocation[],
 });
 
 // Entity type options
-const entityTypeOptions = [
-  { label: 'Customer', value: EntityType.Customer },
-  { label: 'Supplier', value: EntityType.Supplier },
+// const entityTypeOptions = [
+//   { label: 'Customer', value: EntityType.Customer },
+//   { label: 'Supplier', value: EntityType.Supplier },
+// ];
+
+const TransactionDirectionOptions = [
+  {label : 'Received', value: TransactionDirection.Debit},
+  {label : 'Paid', value: TransactionDirection.Credit}
 ];
 
 // Payment method options
@@ -101,9 +114,10 @@ const paymentMethodOptions = [
 
 // Reset form
 const resetFormData = () => {
-  formData.entityType = null;
+  formData.transactionFlow = null;
+  formData.accountId = null;
   formData.entityId = null;
-  formData.paymentBy = '';
+  formData.customerName = '';
   formData.amount = 0;
   formData.paymentDate = '';
   formData.paymentMethod = PaymentMethod.Cash;
@@ -115,13 +129,13 @@ const resetFormData = () => {
 };
 
 const rules = {
-  entityType: [
+  transactionFlow: [
     {
       required: true,
-      message: 'Entity type is required',
+      message: 'Transaction Type is required',
       trigger: ['change'],
       validator: (_rule: any, value: any) => {
-        if (value == null || value === '') return new Error('Entity type is required.');
+        if (value == null || value === '') return new Error('Transaction type is required.');
         return true;
       }
     }
@@ -133,6 +147,17 @@ const rules = {
       trigger: ['change'],
       validator: (_rule: any, value: any) => {
         if (!isEditing.value && (value == null || value === '')) return new Error('Entity is required.');
+        return true;
+      }
+    }
+  ],
+  accountId: [
+    {
+      required: true,
+      message: 'Account is required',
+      trigger: ['change'],
+      validator: (_rule: any, value: any) => {
+        if (value == null || value === '') return new Error('Account is required.');
         return true;
       }
     }
@@ -185,9 +210,10 @@ const openEditDrawer = (row: any) => {
   currentPaymentId.value = row.id;
 
   // Fill form with payment data
-  formData.entityType = row.entityType;
+  formData.transactionFlow = row.transactionFlow;
   formData.entityId = row.entityId;
-  formData.paymentBy = row.paymentBy || '';
+  formData.accountId = row.accountId;
+  formData.customerName = row.customerName || '';
   formData.amount = row.amount;
   formData.paymentDate = row.paymentDate;
   formData.paymentMethod = row.paymentMethod || PaymentMethod.Cash;
@@ -206,9 +232,10 @@ const openViewDrawer = async (row: any) => {
   currentPaymentId.value = row.id;
 
   // Fill form with payment data
-  formData.entityType = row.entityType;
+  formData.transactionFlow = row.transactionFlow;
+  formData.accountId = row.accountId;
   formData.entityId = row.entityId;
-  formData.paymentBy = row.paymentBy || '';
+  formData.customerName = row.customerName || '';
   formData.amount = row.amount;
   formData.paymentDate = row.paymentDate;
   formData.paymentMethod = row.paymentMethod || PaymentMethod.Cash;
@@ -237,10 +264,11 @@ const handleSubmit = () => {
 
     if (!errors) {
       // Ensure we have valid values before submission
-      if (!formData.entityType || (!isEditing.value && !formData.entityId) || formData.amount <= 0) {
+      if (!formData.transactionFlow || (!isEditing.value && !formData.entityId) || formData.amount <= 0) {
         message.error('Please fill in all required fields with valid values');
         console.log('Manual validation failed:', {
-          entityType: formData.entityType,
+          transactionFlow: formData.transactionFlow,
+          accountId: formData.accountId,
           entityId: formData.entityId,
           amount: formData.amount,
           isEditing: isEditing.value
@@ -250,7 +278,8 @@ const handleSubmit = () => {
 
       const submitData = {
         ...formData,
-        entityType: formData.entityType!,
+        transacionFlow: formData.transactionFlow!,
+        accountId: formData.accountId!,
         entityId: isEditing.value ? formData.entityId : formData.entityId!,
         amount: formData.amount,
         paymentDate: formData.paymentDate || new Date().toISOString(),
@@ -264,7 +293,7 @@ const handleSubmit = () => {
         // Update existing payment
         updatePayment(currentPaymentId.value, {
           id: currentPaymentId.value,
-          amount: formData.amount,
+          // amount: formData.amount,
           paymentDate: formData.paymentDate || new Date().toISOString(),
           paymentMethod: formData.paymentMethod,
           notes: formData.notes,
@@ -321,15 +350,15 @@ const loadPayments = async () => {
 };
 
 // Handle filter changes
-const handleEntityTypeChange = (value: string | null) => {
-  selectedEntityType.value = value;
-  selectedEntityId.value = null;
-  currentPage.value = 1; // Reset to first page when filter changes
-  if (value) {
-    getCustomerSuppliersList(value as EntityType);
-  }
-  loadPayments();
-};
+// const handleEntityTypeChange = (value: string | null) => {
+//   selectedTransactionType.value = value;
+//   selectedEntityId.value = null;
+//   currentPage.value = 1; // Reset to first page when filter changes
+//   if (value) {
+//     getCustomersList();
+//   }
+//   loadPayments();
+// };
 
 const handleEntityFilterChange = (value: number | null) => {
   selectedEntityId.value = value;
@@ -376,7 +405,8 @@ const paginationConfig = computed(() => {
 
 // Load payments on mount
 loadPayments();
-getCustomerSuppliersList();
+getCustomersList();
+getAccountsDropdown();
 
 // Update total count when payments are loaded
 const updateTotalCount = (count: number) => {
@@ -414,10 +444,10 @@ const toggleAllocationDetails = (allocationId: number) => {
     <!-- Filters -->
     <n-card class="mb-4">
       <div class="flex gap-4 items-end">
-        <n-form-item label="Filter by Entity Type">
+        <!-- <n-form-item label="Filter by Entity Type">
           <n-select v-model:value="selectedEntityType" placeholder="Select entity type" :options="entityTypeOptions"
             clearable @update:value="handleEntityTypeChange" style="width: 200px" />
-        </n-form-item>
+        </n-form-item> -->
         <n-form-item label="Filter by Entity">
           <n-select v-model:value="selectedEntityId" placeholder="Select entity" :options="entityList" filterable
             clearable @update:value="handleEntityFilterChange" style="width: 200px" />
@@ -453,13 +483,13 @@ const toggleAllocationDetails = (allocationId: number) => {
       <n-drawer-content :title="formTitle" closable>
         <n-form ref="formRef" :model="formData" :rules="rules" :key="formKey" label-placement="top">
           <div class="grid grid-cols-2 gap-4">
-            <n-form-item label="Entity Type" path="entityType">
-              <n-select v-model:value="formData.entityType" placeholder="Select entity type"
-                :options="entityTypeOptions" clearable :disabled="isEditing || isViewing"
-                @update:value="val => { formData.entityType = val; if(val) getCustomerSuppliersList(val as EntityType); }" />
+            <n-form-item label="Transaction Type" path="transactionFlow">
+              <n-select v-model:value="formData.transactionFlow" placeholder="Select transaction type"
+                :options="TransactionDirectionOptions" clearable :disabled="isEditing || isViewing"
+                @update:value="val => { formData.transactionFlow = val; }" />
             </n-form-item>
             <n-form-item label="Entity" path="entityId">
-              <n-input v-if="isEditing || isViewing" v-model:value="formData.paymentBy" placeholder="Entity name"
+              <n-input v-if="isEditing || isViewing" v-model:value="formData.customerName" placeholder="Entity name"
                 :disabled="isEditing || isViewing" />
               <n-select v-else v-model:value="formData.entityId" placeholder="Select entity" :options="entityList"
                 filterable clearable />
@@ -467,17 +497,25 @@ const toggleAllocationDetails = (allocationId: number) => {
           </div>
 
           <div class="grid grid-cols-2 gap-4">
+
+             <n-form-item label="Account" path="accountId">
+              <n-input v-if="isEditing || isViewing" v-model:value="formData.accountName" placeholder="Account"
+                :disabled="isEditing || isViewing" />
+              <n-select v-else v-model:value="formData.accountId" placeholder="Select Account" :options="accountList"
+                filterable clearable />
+            </n-form-item>
             <n-form-item label="Amount" path="amount">
               <n-input-number v-model:value="formData.amount" placeholder="Amount" :min="1" :precision="2"
-                :disabled="isViewing" />
+                :disabled="isEditing || isViewing" />
             </n-form-item>
+            
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
             <n-form-item label="Payment Method" path="paymentMethod">
               <n-select v-model:value="formData.paymentMethod" placeholder="Select payment method"
                 :options="paymentMethodOptions" :disabled="isViewing" />
             </n-form-item>
-          </div>
-
-          <div class="grid grid-cols-1 gap-4">
             <n-form-item label="Payment Date" path="paymentDate">
               <n-date-picker :value="formData.paymentDate ? Date.parse(formData.paymentDate) : null" type="datetime"
                 placeholder="Select payment date and time" :update-value-on-close="true" clearable

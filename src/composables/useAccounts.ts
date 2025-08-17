@@ -1,13 +1,18 @@
 // src/composables/useAccounts.ts
-import { ref } from 'vue';
-import { apiService } from '../api/ApiService';
-import { Account, CreateAccountRequest, UpdateAccountRequest } from '../Interfaces/account.interface';
+import { ref } from "vue";
+import { apiService } from "../api/ApiService";
+import {
+  Account,
+  CreateAccountRequest,
+  UpdateAccountRequest,
+} from "../Interfaces/account.interface";
 
 export function useAccounts() {
   const accounts = ref<Account[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
   const totalCount = ref(0);
+  const accountList = ref();
 
   const fetchAccounts = async (
     pageNumber: number = 1,
@@ -19,7 +24,8 @@ export function useAccounts() {
 
     try {
       let url = `/api/Account?PageNumber=${pageNumber}&PageSize=${pageSize}`;
-      if (referenceNumber) url += `&ReferenceNumber=${encodeURIComponent(referenceNumber)}`;
+      if (referenceNumber)
+        url += `&ReferenceNumber=${encodeURIComponent(referenceNumber)}`;
 
       const response = await apiService.get<Account[]>(url);
 
@@ -34,7 +40,7 @@ export function useAccounts() {
       totalCount.value = response.totalCount || accounts.value.length;
       return totalCount.value;
     } catch (err: any) {
-      error.value = err.message || 'Failed to fetch accounts';
+      error.value = err.message || "Failed to fetch accounts";
       console.error(error.value);
       return 0;
     } finally {
@@ -47,7 +53,7 @@ export function useAccounts() {
     error.value = null;
 
     try {
-      const response = await apiService.post<Account>('/api/Account', data);
+      const response = await apiService.post<Account>("/api/Account", data);
 
       if (response.isError) {
         error.value = response.message;
@@ -61,7 +67,7 @@ export function useAccounts() {
 
       return response.model;
     } catch (err: any) {
-      error.value = err.message || 'Failed to add account';
+      error.value = err.message || "Failed to add account";
       console.error(error.value);
       throw err;
     } finally {
@@ -74,7 +80,10 @@ export function useAccounts() {
     error.value = null;
 
     try {
-      const response = await apiService.post<Account>('/api/Account/Update', data);
+      const response = await apiService.post<Account>(
+        "/api/Account/Update",
+        data
+      );
 
       if (response.isError) {
         error.value = response.message;
@@ -82,7 +91,7 @@ export function useAccounts() {
       }
 
       if (response.model) {
-        const index = accounts.value.findIndex(a => a.id === id);
+        const index = accounts.value.findIndex((a) => a.id === id);
         if (index !== -1) {
           accounts.value[index] = response.model;
         }
@@ -91,7 +100,7 @@ export function useAccounts() {
       return response.model;
     } catch (err: any) {
       debugger;
-      error.value = err.message || 'Failed to update account';
+      error.value = err.message || "Failed to update account";
       console.error(error.value);
       throw err;
     } finally {
@@ -111,10 +120,10 @@ export function useAccounts() {
         throw new Error(response.message);
       }
 
-      accounts.value = accounts.value.filter(a => a.id !== id);
+      accounts.value = accounts.value.filter((a) => a.id !== id);
       totalCount.value = Math.max(0, totalCount.value - 1);
     } catch (err: any) {
-      error.value = err.message || 'Failed to delete account';
+      error.value = err.message || "Failed to delete account";
       console.error(error.value);
       throw err;
     } finally {
@@ -128,16 +137,18 @@ export function useAccounts() {
 
     try {
       // Backend provides /api/Account/dropdown
-      const response = await apiService.get<{ label: string; value: number }[]>(`/api/Account/dropdown`);
+      const response = await apiService.get<{ label: string; value: number }[]>(
+        `/api/Account/dropdown`
+      );
 
       if ((response as any).isError) {
         error.value = (response as any).message;
         return [] as { label: string; value: number }[];
       }
-
+      accountList.value = response;
       return (response as any).model || [];
     } catch (err: any) {
-      error.value = err.message || 'Failed to load accounts dropdown';
+      error.value = err.message || "Failed to load accounts dropdown";
       console.error(error.value);
       return [] as { label: string; value: number }[];
     } finally {
@@ -147,6 +158,7 @@ export function useAccounts() {
 
   return {
     accounts,
+    accountList,
     loading,
     error,
     totalCount,
@@ -157,5 +169,3 @@ export function useAccounts() {
     getAccountsDropdown,
   };
 }
-
-

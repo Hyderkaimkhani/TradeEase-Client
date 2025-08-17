@@ -1,6 +1,6 @@
 export interface PaymentAllocation {
   id: number;
-  paymentId: number;
+  trnsactionId: number;
   referenceType: string;
   referenceId: number;
   allocatedAmount: number;
@@ -14,19 +14,23 @@ export interface PaymentAllocation {
 }
 export interface Payment {
   id: number;
-  entityType: string;
+  accountId: number;  
+  transactionType: string;
   entityId: number;
+  customerName: string | null;
   amount: number;
+  accountName: string;
   paymentDate: string;
   paymentMethod: string;
   notes?: string;
   isActive: boolean;
-  paymentBy?: string;
+  // paymentBy?: string;
   paymentAllocations?: PaymentAllocation[];
 }
 
 export interface CreatePaymentRequest {
-  entityType: string;
+  transactionDirection: string;
+  accountId: number;
   entityId: number;
   amount: number;
   paymentDate: string;
@@ -36,7 +40,7 @@ export interface CreatePaymentRequest {
 
 export interface UpdatePaymentRequest {
   id: number;
-  amount: number;
+  //amount: number;
   paymentDate: string;
   paymentMethod: string;
   notes?: string;
