@@ -93,12 +93,6 @@ const formData = reactive({
   paymentAllocations: [] as PaymentAllocation[],
 });
 
-// Entity type options
-// const entityTypeOptions = [
-//   { label: 'Customer', value: EntityType.Customer },
-//   { label: 'Supplier', value: EntityType.Supplier },
-// ];
-
 const TransactionDirectionOptions = [
   {label : 'Received', value: TransactionDirection.Debit},
   {label : 'Paid', value: TransactionDirection.Credit}
@@ -143,10 +137,10 @@ const rules = {
   entityId: [
     {
       required: true,
-      message: 'Entity is required',
+      message: 'Customer is required',
       trigger: ['change'],
       validator: (_rule: any, value: any) => {
-        if (!isEditing.value && (value == null || value === '')) return new Error('Entity is required.');
+        if (!isEditing.value && (value == null || value === '')) return new Error('Customer is required.');
         return true;
       }
     }
@@ -349,17 +343,6 @@ const loadPayments = async () => {
   });
 };
 
-// Handle filter changes
-// const handleEntityTypeChange = (value: string | null) => {
-//   selectedTransactionType.value = value;
-//   selectedEntityId.value = null;
-//   currentPage.value = 1; // Reset to first page when filter changes
-//   if (value) {
-//     getCustomersList();
-//   }
-//   loadPayments();
-// };
-
 const handleEntityFilterChange = (value: number | null) => {
   selectedEntityId.value = value;
   currentPage.value = 1; // Reset to first page when filter changes
@@ -442,14 +425,10 @@ const toggleAllocationDetails = (allocationId: number) => {
     </div>
 
     <!-- Filters -->
-    <n-card class="mb-4">
-      <div class="flex gap-4 items-end">
-        <!-- <n-form-item label="Filter by Entity Type">
-          <n-select v-model:value="selectedEntityType" placeholder="Select entity type" :options="entityTypeOptions"
-            clearable @update:value="handleEntityTypeChange" style="width: 200px" />
-        </n-form-item> -->
-        <n-form-item label="Filter by Entity">
-          <n-select v-model:value="selectedEntityId" placeholder="Select entity" :options="entityList" filterable
+    <n-card class="mb-2">
+      <div class="flex gap-4 items-center">
+        <n-form-item label="Filter by Customer">
+          <n-select v-model:value="selectedEntityId" placeholder="Select Customer" :options="entityList" filterable
             clearable @update:value="handleEntityFilterChange" style="width: 200px" />
         </n-form-item>
         <n-button @click="loadPayments" :loading="loading">
@@ -488,10 +467,10 @@ const toggleAllocationDetails = (allocationId: number) => {
                 :options="TransactionDirectionOptions" clearable :disabled="isEditing || isViewing"
                 @update:value="val => { formData.transactionFlow = val; }" />
             </n-form-item>
-            <n-form-item label="Entity" path="entityId">
-              <n-input v-if="isEditing || isViewing" v-model:value="formData.customerName" placeholder="Entity name"
+            <n-form-item label="Customer" path="entityId">
+              <n-input v-if="isEditing || isViewing" v-model:value="formData.customerName" placeholder="Customer name"
                 :disabled="isEditing || isViewing" />
-              <n-select v-else v-model:value="formData.entityId" placeholder="Select entity" :options="entityList"
+              <n-select v-else v-model:value="formData.entityId" placeholder="Select customer" :options="entityList"
                 filterable clearable />
             </n-form-item>
           </div>

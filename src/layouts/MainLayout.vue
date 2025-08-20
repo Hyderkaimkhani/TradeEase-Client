@@ -89,23 +89,29 @@ const menuOptions = [
     path: '/app/payments'
   },
   {
-    label: 'Bills',
-    key: 'bills',
+    label: 'Transactions',
+    key: 'transactions',
     icon: BillIcon,
-    path: '/app/bills'
+    path: '/app/transactions'
   },
   {
-    label: 'Trucks',
-    key: 'trucks',
-    icon: TruckIcon,
-    path: '/app/trucks'
+    label: 'Bill',
+    key: 'satement',
+    icon: BillIcon,
+    path: '/app/statement'
   },
-  {
-    label: 'Sample Page',
-    key: 'sample',
-    icon: TruckIcon,
-    path: '/app/sample'
-  }
+  // {
+  //   label: 'Trucks',
+  //   key: 'trucks',
+  //   icon: TruckIcon,
+  //   path: '/app/trucks'
+  // },
+  // {
+  //   label: 'Sample Page',
+  //   key: 'sample',
+  //   icon: TruckIcon,
+  //   path: '/app/sample'
+  // }
 ] as any[];
 
 // User dropdown options

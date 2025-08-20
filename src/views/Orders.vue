@@ -417,9 +417,9 @@ fetchFruits();
     </div>
 
     <!-- Filters -->
-    <n-card class="mb-4">
+    <n-card class="mb-2">
       <!-- Basic Filters -->
-      <div class="flex gap-4 items-center mb-2">
+      <div class="flex gap-4 items-center">
         <n-form-item label="Filter by Fruit">
           <n-select v-model:value="selectedFruitId" placeholder="Select fruit" :options="fruits" clearable
             @update:value="handleFruitFilterChange" style="width: 200px" />

@@ -1,3 +1,4 @@
+
 import { NButton, NIcon, NPopconfirm, NSpace, NTag} from 'naive-ui'
 import { TrashOutline as DeleteIcon, PencilOutline as EditIcon, EyeOutline as EyeIcon } from '@vicons/ionicons5';
 import { h } from 'vue';
@@ -819,6 +820,79 @@ export const paymentColumns = (openViewDrawer: any, handleDelete: any) => [
                   }
                 ),
                 default: () => 'Are you sure you want to delete this payment?'
+              }
+            )
+          ]
+        }
+      );
+    }
+  }
+];
+
+export const accountTransactionColumns = (openViewDrawer: any, handleDelete: any) => [
+  { title: 'Account', key: 'accountName' },
+  { title: 'Type', key: 'transactionType' },
+  { title: 'Amount', key: 'amount' },
+  { title: 'Date', key: 'transactionDate', render(row: any) { return new Date(row.transactionDate).toLocaleString(); } },
+    {
+    title: 'Actions',
+    key: 'actions',
+    width: 120,
+    render(row: any) {
+      return h(
+        NSpace,
+        {
+          justify: 'start',
+          align: 'start'
+        },
+        {
+          default: () => [
+            h(
+              NButton,
+              {
+                quaternary: true,
+                circle: true,
+                onClick: () => openViewDrawer(row)
+              },
+              {
+                default: () => h(
+                  NIcon,
+                  {
+                    color: 'rgb(0, 82, 204)'
+                  },
+                  {
+                    default: () => h(EyeIcon)
+                  }
+                )
+              }
+            ),
+            h(
+              NPopconfirm,
+              {
+                onPositiveClick: () => handleDelete(row.id),
+                negativeText: 'Cancel',
+                positiveText: 'Delete'
+              },
+              {
+                trigger: () => h(
+                  NButton,
+                  {
+                    quaternary: true,
+                    circle: true
+                  },
+                  {
+                    default: () => h(
+                      NIcon,
+                      {
+                        color: 'rgb(255, 86, 48)'
+                      },
+                      {
+                        default: () => h(DeleteIcon)
+                      }
+                    )
+                  }
+                ),
+                default: () => 'Are you sure you want to delete this transaction?'
               }
             )
           ]

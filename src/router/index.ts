@@ -11,6 +11,8 @@ import Payments from '../views/Payments.vue'
 import Bills from '../views/Bills.vue'
 import SamplePage from '../views/SamplePage.vue'
 import Accounts from '../views/Accounts.vue'
+import AccountTransactions from '../views/AccountTransactions.vue'
+import AccountStatement from '../views/AccountStatement.vue'
 
 // Define routes
 const routes: RouteRecordRaw[] = [
@@ -70,9 +72,9 @@ const routes: RouteRecordRaw[] = [
         component: Payments
       },
        {
-        path: 'bills',
-        name: 'Bills',
-        component: Bills
+        path: 'transactions',
+        name: 'Transactions',
+        component: AccountTransactions
       },
       {
         path: 'sample',
@@ -82,7 +84,12 @@ const routes: RouteRecordRaw[] = [
       {
         path: '',
         redirect: '/app/dashboard'
-      }
+      },
+      {
+        path: 'statement',
+        name: 'AccountStatement',
+        component: AccountStatement
+      },
     ]
   },
   {
