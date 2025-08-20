@@ -87,6 +87,55 @@ export function useAccountTransactions() {
     }
   }
 
+  async function fetchStatement({ accountId, entityId, fromDate, toDate }: {
+    accountId?: number;
+    entityId?: number;
+    fromDate: string;
+    toDate: string;
+  }) {
+    loading.value = true;
+    try {
+      const response = await apiService.post<any>(
+        '/api/AccountTransaction/statement',
+        {
+          accountId: accountId || 0,
+          entityId: entityId || 0,
+          fromDate,
+          toDate,
+        }
+      );
+      return response;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+    async function exportStatement({accountId, entityId, fromDate, toDate,}: {
+      accountId?: number;
+      entityId?: number;
+      fromDate: string;
+      toDate: string;
+    }) {
+      loading.value = true;
+      try {
+        await apiService.downloadFile(
+          "/api/AccountTransaction/export-statement",
+          {
+            accountId: accountId || 0,
+            entityId: entityId || 0,
+            fromDate,
+            toDate,
+          },
+          "Statement.pdf"
+        );
+      } catch (error) {
+        console.error("Export failed:", error);
+        // Show error message to user
+      } finally {
+        loading.value = false;
+      }
+    }
+
   return {
     transactions,
     loading,
@@ -95,5 +144,7 @@ export function useAccountTransactions() {
     addTransaction,
     deleteTransaction,
     getTransactionById,
+    fetchStatement,
+    exportStatement,
   };
 }

@@ -141,6 +141,31 @@ export class ApiService {
         sessionStorage.removeItem('tokenExpiryTime');
         window.location.href = '/login';
     }
+
+    // Add this to your API service class
+    async downloadFile(endpoint: string, data: any, filename: string): Promise<void> {
+    try {
+        const response = await this.api.post(endpoint, data, {
+            responseType: 'blob' // This is crucial
+        });
+
+        // Create download link
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error('Download failed:', error);
+        throw new Error('Failed to download file');
+    }
+}
 }
 
 // Create and export a singleton instance

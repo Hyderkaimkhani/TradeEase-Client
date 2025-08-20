@@ -13,7 +13,7 @@ import {
 } from 'naive-ui';
 import { useAccounts } from '../composables/useAccounts';
 import { useCustomers } from '../composables/useCustomers';
-import {apiService} from '../api/ApiService';
+import { useAccountTransactions } from '../composables/useAccountTransactions';
 
 const message = useMessage();
 const { accountList, getAccountsDropdown } = useAccounts();
@@ -21,6 +21,7 @@ const { entityList, getCustomersList } = useCustomers();
 
 const loading = ref(false);
 const statement = ref<any>(null);
+const { fetchStatement,exportStatement } = useAccountTransactions();
 
 const form = reactive({
   accountId: null as number | null,
@@ -66,15 +67,17 @@ function validateForm() {
   return true;
 }
 
-async function fetchStatement() {
+async function getStatement() {
   if (!validateForm()) return;
   loading.value = true;
   try {
-    const res = await apiService.post('/api/AccountTransaction/statement', {
+    const filteredFromDate = new Date(form.fromDate!).toISOString().split('T')[0];
+    const filteredToDate = new Date(form.toDate!).toISOString().split('T')[0];
+    const res = await fetchStatement({
       accountId: form.accountId || 0,
       entityId: form.entityId || 0,
-      fromDate: form.fromDate,
-      toDate: form.toDate,
+      fromDate: filteredFromDate,
+      toDate: filteredToDate,
     });
     if (!res.isError) {
       statement.value = res.model;
@@ -83,6 +86,51 @@ async function fetchStatement() {
     }
   } catch (e: any) {
     message.error(e.message || 'Error fetching statement');
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function downloadStatement() {
+  if (!validateForm()) return;
+  loading.value = true;
+  try {
+    // Use fetchStatement but with export URL
+    const url = '/api/AccountTransaction/export-statement';
+    // Directly use apiService for file download
+    const filteredFromDate = new Date(form.fromDate!).toISOString().split('T')[0];
+    const filteredToDate = new Date(form.toDate!).toISOString().split('T')[0];
+    const params = {
+      accountId: form.accountId || 0,
+      entityId: form.entityId || 0,
+      fromDate: filteredFromDate,
+      toDate: filteredToDate,
+    };
+    const response = await exportStatement({
+        accountId: form.accountId || 0,
+      entityId: form.entityId || 0,
+      fromDate: filteredFromDate,
+      toDate: filteredToDate,
+    });
+
+    if (response.isError) {
+      message.error('Failed to export statement');
+      return;
+    }
+
+
+    // const blob = await response.blob();
+    // const urlBlob = window.URL.createObjectURL(blob);
+    // const link = document.createElement('a');
+    // link.href = urlBlob;
+    // link.download = 'AccountStatement.pdf';
+    // document.body.appendChild(link);
+    // link.click();
+    // link.remove();
+    // window.URL.revokeObjectURL(urlBlob);
+    // message.success('Statement exported');
+  } catch (e: any) {
+    message.error(e.message || 'Error exporting statement');
   } finally {
     loading.value = false;
   }
@@ -109,7 +157,10 @@ getCustomersList();
           <n-date-picker v-model:value="form.toDate" type="date" placeholder="To date" clearable />
         </n-form-item>
         <n-form-item>
-          <n-button type="primary" @click="fetchStatement" :loading="loading">Fetch Statement</n-button>
+          <n-space>
+            <n-button type="primary" @click="getStatement" :loading="loading">Fetch Statement</n-button>
+            <n-button type="default" @click="downloadStatement" :loading="loading">Export Statement</n-button>
+          </n-space>
         </n-form-item>
       </n-form>
     </n-card>
