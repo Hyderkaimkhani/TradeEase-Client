@@ -10,21 +10,29 @@ import {
   NButton,
   NDropdown,
   NIcon,
-  NAvatar,
-  NSpace
+  NAvatar
 } from 'naive-ui';
 import {
   HomeOutline as HomeIcon,
   PeopleOutline as PeopleIcon,
-  CarOutline as TruckIcon,
   PersonOutline as PersonIcon,
   LogOutOutline as LogOutIcon,
-  MenuOutline as MenuIcon
+  MenuOutline as MenuIcon,
+  CubeOutline as SupplyIcon,
+  DocumentTextOutline as OrderIcon,
+  WalletOutline as PaymentIcon,
+  ReceiptOutline as BillIcon
 } from '@vicons/ionicons5';
+import { CardOutline as AccountIcon } from '@vicons/ionicons5'
+import { useAuth } from '../composables/useAuth';
 
 // Router
 const router = useRouter();
 const route = useRoute();
+
+const {
+  logout
+} = useAuth();
 
 // Responsive sidebar
 const collapsed = ref(window.innerWidth <= 768);
@@ -56,12 +64,54 @@ const menuOptions = [
     path: '/app/customers'
   },
   {
-    label: 'Trucks',
-    key: 'trucks',
-    icon: TruckIcon,
-    path: '/app/trucks'
-  }
-];
+    label: 'Accounts',
+    key: 'accounts',
+    icon: AccountIcon,
+    path: '/app/accounts'
+  },
+  {
+    label: 'Supplies',
+    key: 'supplies',
+    icon: SupplyIcon,
+    path: '/app/supplies'
+  },
+  {
+    label: 'Orders',
+    key: 'orders',
+    icon: OrderIcon,
+    path: '/app/orders'
+  },
+  {
+    label: 'Payments',
+    key: 'payments',
+    icon: PaymentIcon,
+    path: '/app/payments'
+  },
+  {
+    label: 'Transactions',
+    key: 'transactions',
+    icon: BillIcon,
+    path: '/app/transactions'
+  },
+  {
+    label: 'Bill',
+    key: 'satement',
+    icon: BillIcon,
+    path: '/app/statement'
+  },
+  // {
+  //   label: 'Trucks',
+  //   key: 'trucks',
+  //   icon: TruckIcon,
+  //   path: '/app/trucks'
+  // },
+  // {
+  //   label: 'Sample Page',
+  //   key: 'sample',
+  //   icon: TruckIcon,
+  //   path: '/app/sample'
+  // }
+] as any[];
 
 // User dropdown options
 const userOptions = [
@@ -75,7 +125,7 @@ const userOptions = [
     key: 'logout',
     icon: LogOutIcon
   }
-];
+] as any[];
 
 // Active menu item
 const activeKey = computed(() => {
@@ -105,6 +155,7 @@ const handleUserSelect = (key: string) => {
     router.push('/app/profile');
   } else if (key === 'logout') {
     // Clear auth and redirect to login
+    logout()
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('user');
     router.push('/login');
@@ -133,7 +184,7 @@ const toggleSidebar = () => {
       class="sidebar-transition"
     >
       <div class="p-4 flex items-center justify-center">
-        <h2 class="text-xl font-bold text-primary-600">ShipManager</h2>
+        <h2 class="text-xl font-bold text-primary-600">TradeEase</h2>
       </div>
       <n-menu
         v-model:value="activeKey"

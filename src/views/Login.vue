@@ -12,39 +12,39 @@ import {
   NIcon,
   useMessage
 } from 'naive-ui';
-import { MailOutline, LockClosedOutline, PersonOutline } from '@vicons/ionicons5';
+import { LockClosedOutline, PersonOutline } from '@vicons/ionicons5';
 import { useAuth } from '../composables/useAuth';
 
 // Router
 const router = useRouter();
 const message = useMessage();
-const { login, signup } = useAuth();
+const { login } = useAuth();
 
 // Tab state
 const activeTab = ref('login');
 
 // Form models
 const loginForm = reactive({
-  email: '',
+  userName: '',
   password: ''
 });
 
-const signupForm = reactive({
-  name: '',
-  email: '',
-  password: '',
-  confirmPassword: ''
-});
+// const signupForm = reactive({
+//   name: '',
+//   email: '',
+//   password: '',
+//   confirmPassword: ''
+// });
 
 // Loading states
 const isLoggingIn = ref(false);
-const isSigningUp = ref(false);
+// const isSigningUp = ref(false);
 
 // Form rules
 const loginRules = {
-  email: [
-    { required: true, message: 'Please input your email', trigger: 'blur' },
-    { type: 'email', message: 'Please input a valid email address', trigger: 'blur' }
+  userName: [
+    { required: true, message: 'Please input your username', trigger: 'blur' },
+    { min: 3, message: 'Username must be at least 3 characters', trigger: 'blur' }
   ],
   password: [
     { required: true, message: 'Please input your password', trigger: 'blur' },
@@ -52,33 +52,33 @@ const loginRules = {
   ]
 };
 
-const signupRules = {
-  name: [
-    { required: true, message: 'Please input your name', trigger: 'blur' }
-  ],
-  email: [
-    { required: true, message: 'Please input your email', trigger: 'blur' },
-    { type: 'email', message: 'Please input a valid email address', trigger: 'blur' }
-  ],
-  password: [
-    { required: true, message: 'Please input your password', trigger: 'blur' },
-    { min: 6, message: 'Password must be at least 6 characters', trigger: 'blur' }
-  ],
-  confirmPassword: [
-    { required: true, message: 'Please confirm your password', trigger: 'blur' },
-    {
-      validator: (rule: any, value: string) => {
-        return value === signupForm.password;
-      },
-      message: 'Passwords do not match',
-      trigger: 'blur'
-    }
-  ]
-};
+// const signupRules = {
+//   name: [
+//     { required: true, message: 'Please input your name', trigger: 'blur' }
+//   ],
+//   email: [
+//     { required: true, message: 'Please input your email', trigger: 'blur' },
+//     { type: 'email', message: 'Please input a valid email address', trigger: 'blur' }
+//   ],
+//   password: [
+//     { required: true, message: 'Please input your password', trigger: 'blur' },
+//     { min: 6, message: 'Password must be at least 6 characters', trigger: 'blur' }
+//   ],
+//   confirmPassword: [
+//     { required: true, message: 'Please confirm your password', trigger: 'blur' },
+//     {
+//       validator: (rule: any, value: string) => {
+//         return value === signupForm.password;
+//       },
+//       message: 'Passwords do not match',
+//       trigger: 'blur'
+//     }
+//   ]
+// };
 
 // Form refs
 const loginFormRef = ref<any>(null);
-const signupFormRef = ref<any>(null);
+// const signupFormRef = ref<any>(null);
 
 // Handle login
 const handleLogin = (e: Event) => {
@@ -87,7 +87,7 @@ const handleLogin = (e: Event) => {
     if (!errors) {
       isLoggingIn.value = true;
       try {
-        await login(loginForm.email, loginForm.password);
+        await login(loginForm.userName, loginForm.password);
         message.success('Login successful');
         router.push('/app/dashboard');
       } catch (error: any) {
@@ -99,32 +99,37 @@ const handleLogin = (e: Event) => {
   });
 };
 
-// Handle signup
-const handleSignup = (e: Event) => {
-  e.preventDefault();
-  signupFormRef.value?.validate(async (errors: any) => {
-    if (!errors) {
-      isSigningUp.value = true;
-      try {
-        await signup(signupForm.name, signupForm.email, signupForm.password);
-        message.success('Signup successful');
-        router.push('/app/dashboard');
-      } catch (error: any) {
-        message.error(error.message || 'Signup failed');
-      } finally {
-        isSigningUp.value = false;
-      }
-    }
-  });
-};
+ // Handle signup
+// const handleSignup = (e: Event) => {
+//   e.preventDefault();
+//   signupFormRef.value?.validate(async (errors: any) => {
+//     if (!errors) {
+//       isSigningUp.value = true;
+//       try {
+//         await signup(signupForm.name, signupForm.email, signupForm.password);
+//         message.success('Signup successful! Please login with your credentials.');
+//         // Clear the form and redirect to login tab
+//         signupForm.name = '';
+//         signupForm.email = '';
+//         signupForm.password = '';
+//         signupForm.confirmPassword = '';
+//         activeTab.value = 'login';
+//       } catch (error: any) {
+//         message.error(error.message || 'Signup failed');
+//       } finally {
+//         isSigningUp.value = false;
+//       }
+//     }
+//   });
+// };
 </script>
 
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 p-4">
     <n-card class="w-full max-w-md">
       <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-primary-600">ShipManager</h1>
-        <p class="text-gray-500">Trade Ease</p>
+        <h1 class="text-2xl font-bold text-primary-600">TradeEase</h1>
+        <p class="text-gray-500">Trade Smarter, Grow Faster</p>
       </div>
 
       <n-tabs v-model:value="activeTab" animated>
@@ -136,14 +141,14 @@ const handleSignup = (e: Event) => {
             :rules="loginRules"
             label-placement="top"
           >
-            <n-form-item label="Email" path="email">
+            <n-form-item label="Username" path="userName">
               <n-input
-                v-model:value="loginForm.email"
-                placeholder="Enter your email"
+                v-model:value="loginForm.userName"
+                placeholder="Enter your username"
                 clearable
               >
                 <template #prefix>
-                  <n-icon><mail-outline /></n-icon>
+                  <n-icon><person-outline /></n-icon>
                 </template>
               </n-input>
             </n-form-item>
@@ -179,7 +184,7 @@ const handleSignup = (e: Event) => {
         </n-tab-pane>
 
         <!-- Sign up Tab -->
-        <n-tab-pane name="signup" tab="Sign up">
+        <!-- <n-tab-pane name="signup" tab="Sign up">
           <n-form
             ref="signupFormRef"
             :model="signupForm"
@@ -251,7 +256,7 @@ const handleSignup = (e: Event) => {
               <a href="#" @click.prevent="activeTab = 'login'" class="text-primary-500">Login</a>
             </div>
           </n-form>
-        </n-tab-pane>
+        </n-tab-pane> -->
       </n-tabs>
     </n-card>
   </div>

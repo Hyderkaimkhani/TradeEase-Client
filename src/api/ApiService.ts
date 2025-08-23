@@ -7,12 +7,15 @@ export class ApiService {
     private baseURL: string;
 
     constructor() {
-        this.baseURL = 'https://tradeeaseapi-fwa6aqc2dhasbpdq.canadacentral-01.azurewebsites.net';
+        // In development, use proxy (empty baseURL), in production use full URL
+        this.baseURL = import.meta.env.DEV ? 'https://localhost:44310' : import.meta.env.VITE_API_URL //|| 'https://tradeeaseapi-fwa6aqc2dhasbpdq.canadacentral-01.azurewebsites.net');
+
         this.api = axios.create({
             baseURL: this.baseURL,
             headers: {
                 'Content-Type': 'application/json',
             },
+            timeout: 30000, // 30 seconds timeout
         });
 
         this.setupInterceptors();
@@ -22,9 +25,10 @@ export class ApiService {
         // Request interceptor
         this.api.interceptors.request.use(
             (config:any) => {
-                const token = localStorage.getItem('accessToken');
+                const token = sessionStorage.getItem('accessToken');
                 if (token) {
                     config.headers.Authorization = `Bearer ${token}`;
+                    // config.headers.cache = 'no-cache'; // Disable caching for requests
                 }
                 return config;
             },
@@ -37,8 +41,10 @@ export class ApiService {
             async (error:any) => {
                 if (error.response?.status === 401) {
                     // Handle token refresh or logout
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('refreshToken');
+                    sessionStorage.removeItem('accessToken');
+                    sessionStorage.removeItem('refreshToken');
+                    sessionStorage.removeItem('accessTokenExpiry');
+                    sessionStorage.removeItem('isAuthenticated');
                     window.location.href = '/login';
                 }
                 return Promise.reject(error);
@@ -105,25 +111,61 @@ export class ApiService {
             const response = await this.api.post<ApiResponse<LoginResponse>>('/api/Users/Login', credentials);
             
             if (!response.data.isError && response.data.model) {
-                localStorage.setItem('accessToken', response.data.model.accessToken);
-                localStorage.setItem('refreshToken', response.data.model.refreshToken);
+                const { accessToken, refreshToken, accessTokenExpiry } = response.data.model;
+                sessionStorage.setItem('accessToken', accessToken);
+                sessionStorage.setItem('refreshToken', refreshToken);
+                sessionStorage.setItem('accessTokenExpiry', accessTokenExpiry.toString());
+                sessionStorage.setItem('isAuthenticated', 'true');
+                
+                // Calculate expiry time
+                const expiryTime = Date.now() + (accessTokenExpiry * 1000);
+                sessionStorage.setItem('tokenExpiryTime', expiryTime.toString());
             }
             
             return response.data;
-        } catch (error) {
+        } catch (error: any) {
+            console.error('Login error:', error);
             return {
                 isError: true,
-                message: 'Login failed',
+                message: error.response?.data?.message || 'Login failed',
                 model: null
             };
         }
     }
 
     logout(): void {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        sessionStorage.removeItem('accessToken');
+        sessionStorage.removeItem('refreshToken');
+        sessionStorage.removeItem('accessTokenExpiry');
+        sessionStorage.removeItem('isAuthenticated');
+        sessionStorage.removeItem('tokenExpiryTime');
         window.location.href = '/login';
     }
+
+    // Add this to your API service class
+    async downloadFile(endpoint: string, data: any, filename: string): Promise<void> {
+    try {
+        const response = await this.api.post(endpoint, data, {
+            responseType: 'blob' // This is crucial
+        });
+
+        // Create download link
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error('Download failed:', error);
+        throw new Error('Failed to download file');
+    }
+}
 }
 
 // Create and export a singleton instance

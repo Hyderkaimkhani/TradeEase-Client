@@ -3,5 +3,12 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ]
+  ],
+  "compilerOptions": {
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+        "target": "ES2020",
+    "module": "ESNext",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  }
 }

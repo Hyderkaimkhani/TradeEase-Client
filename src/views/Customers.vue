@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, h } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import {
   NButton,
   NCard,
@@ -10,14 +10,13 @@ import {
   NForm,
   NFormItem,
   NInput,
-  NInputGroup,
-  NTag,
-  useMessage,
-  NPopconfirm,
-  NIcon
+  NInputNumber,
+  NPagination,
+  useMessage
 } from 'naive-ui';
-import { TrashOutline as DeleteIcon, PencilOutline as EditIcon } from '@vicons/ionicons5';
 import { useCustomers } from '../composables/useCustomers';
+import { FormInst } from 'naive-ui';
+import { customerColumns } from '../Constants/GridColumns';
 
 // Message API
 const message = useMessage();
@@ -32,38 +31,86 @@ const {
   deleteCustomer
 } = useCustomers();
 
+// Pagination state
+const currentPage = ref(1);
+const pageSize = ref(10);
+const totalCount = computed(() => filteredCustomers.value.length);
+
+// Search state
+const searchTerm = ref('');
+
+// Computed: Filtered customers by search term
+const filteredCustomers = computed(() => {
+  if (!searchTerm.value) return customers.value;
+  const term = searchTerm.value.toLowerCase();
+  return customers.value.filter(c =>
+    (c.name && c.name.toLowerCase().includes(term)) ||
+    (c.phone && c.phone.toLowerCase().includes(term)) ||
+    (c.address && c.address.toLowerCase().includes(term)) ||
+    (c.city && c.city.toLowerCase().includes(term))
+  );
+});
+
+// Computed: Paginated customers
+const paginatedCustomers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  return filteredCustomers.value.slice(start, start + pageSize.value);
+});
+
+// Pagination handlers
+const handlePageChange = (page: number) => {
+  currentPage.value = page;
+};
+const handlePageSizeChange = (size: number) => {
+  pageSize.value = size;
+  currentPage.value = 1;
+};
+
 // Drawer state
 const showDrawer = ref(false);
 const formTitle = ref('Add Customer');
 const isEditing = ref(false);
 const currentCustomerId = ref<number | null>(null);
 
+const formRef = ref<FormInst | null>(null)
 // Form model
 const formData = reactive({
   name: '',
-  email: '',
   phone: '',
   address: '',
   city: '',
-  state: '',
-  zipCode: '',
-  status: 'active'
+  creditBalance: 0,
+  paymentTerms: '',
 });
 
 // Reset form
 const resetForm = () => {
   formData.name = '';
-  formData.email = '';
   formData.phone = '';
   formData.address = '';
   formData.city = '';
-  formData.state = '';
-  formData.zipCode = '';
-  formData.status = 'active';
+  formData.creditBalance = 0;
+  formData.paymentTerms = '';
   isEditing.value = false;
   currentCustomerId.value = null;
 };
 
+const rules = {
+  name: [
+    {
+      required: true,
+      message: 'Name is required',
+      trigger: ['input', 'blur']
+    }
+  ],
+  phone: [
+    {
+      required: true,
+      message: 'Phone number is required',
+      trigger: ['input', 'blur']
+    }
+  ],
+}
 // Open drawer for adding
 const openAddDrawer = () => {
   resetForm();
@@ -77,7 +124,7 @@ const openEditDrawer = (row: any) => {
   formTitle.value = 'Edit Customer';
   isEditing.value = true;
   currentCustomerId.value = row.id;
-  
+
   // Fill form with customer data
   Object.assign(formData, row);
   showDrawer.value = true;
@@ -85,27 +132,35 @@ const openEditDrawer = (row: any) => {
 
 // Handle form submission
 const handleSubmit = () => {
-  if (isEditing.value && currentCustomerId.value !== null) {
-    // Update existing customer
-    updateCustomer(currentCustomerId.value, formData)
-      .then(() => {
-        message.success('Customer updated successfully');
-        showDrawer.value = false;
-      })
-      .catch((error) => {
-        message.error(error.message || 'Failed to update customer');
-      });
-  } else {
-    // Add new customer
-    addCustomer(formData)
-      .then(() => {
-        message.success('Customer added successfully');
-        showDrawer.value = false;
-      })
-      .catch((error) => {
-        message.error(error.message || 'Failed to add customer');
-      });
-  }
+
+  formRef.value?.validate((errors) => {
+    if (!errors) {
+      if (isEditing.value && currentCustomerId.value !== null) 
+      {
+        // Update existing customer
+        updateCustomer(currentCustomerId.value, formData)
+          .then(() => {
+            message.success('Customer updated successfully');
+            showDrawer.value = false;
+          })
+          .catch((error) => {
+            message.error(error.message || 'Failed to update customer');
+          });
+      } 
+      else 
+      {
+        // Add new customer
+        addCustomer(formData)
+          .then(() => {
+            message.success('Customer added successfully');
+            showDrawer.value = false;
+          })
+          .catch((error) => {
+            message.error(error.message || 'Failed to add customer');
+          });
+      }
+    }
+  })
 };
 
 // Handle customer deletion
@@ -120,119 +175,7 @@ const handleDelete = (id: number) => {
 };
 
 // Table columns
-const columns = [
-  {
-    title: 'ID',
-    key: 'id',
-    width: 70
-  },
-  {
-    title: 'Name',
-    key: 'name',
-    width: 140
-  },
-  {
-    title: 'Email',
-    key: 'email',
-    width: 180
-  },
-  {
-    title: 'Phone',
-    key: 'phone',
-    width: 130
-  },
-  {
-    title: 'Address',
-    key: 'address',
-    ellipsis: {
-      tooltip: true
-    }
-  },
-  {
-    title: 'Status',
-    key: 'status',
-    width: 100,
-    render(row: any) {
-      const statusType = row.status === 'active' ? 'success' : 'error';
-      return h(
-        NTag,
-        {
-          type: statusType,
-          size: 'small'
-        },
-        {
-          default: () => row.status
-        }
-      );
-    }
-  },
-  {
-    title: 'Actions',
-    key: 'actions',
-    width: 120,
-    render(row: any) {
-      return h(
-        NSpace,
-        {
-          justify: 'center',
-          align: 'center'
-        },
-        {
-          default: () => [
-            h(
-              NButton,
-              {
-                quaternary: true,
-                circle: true,
-                onClick: () => openEditDrawer(row)
-              },
-              {
-                default: () => h(
-                  NIcon,
-                  {
-                    color: 'rgb(0, 82, 204)'
-                  },
-                  {
-                    default: () => h(EditIcon)
-                  }
-                )
-              }
-            ),
-            h(
-              NPopconfirm,
-              {
-                onPositiveClick: () => handleDelete(row.id),
-                negativeText: 'Cancel',
-                positiveText: 'Delete'
-              },
-              {
-                trigger: () => h(
-                  NButton,
-                  {
-                    quaternary: true,
-                    circle: true
-                  },
-                  {
-                    default: () => h(
-                      NIcon,
-                      {
-                        color: 'rgb(255, 86, 48)'
-                      },
-                      {
-                        default: () => h(DeleteIcon)
-                      }
-                    )
-                  }
-                ),
-                default: () => 'Are you sure you want to delete this customer?'
-              }
-            )
-          ]
-        }
-      );
-    }
-  }
-];
+const columns = customerColumns(openEditDrawer, handleDelete)
 
 // Load customers on mount
 fetchCustomers();
@@ -240,64 +183,77 @@ fetchCustomers();
 
 <template>
   <div>
-    <div class="flex justify-between items-center mb-6">
+
+    <!-- <div class="flex justify-between items-center mb-1">
       <h1 class="text-2xl font-bold">Customers</h1>
       <n-button type="primary" @click="openAddDrawer">
         Add Customer
       </n-button>
+    </div> -->
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+      <h1 class="text-2xl font-bold">Customers</h1>
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <!-- <n-input v-model:value="accountSearch" placeholder="Search by Account #" class="w-full sm:w-64"
+          @keydown.enter="handleSearch" />
+        <n-button tertiary @click="handleSearch">Search</n-button> -->
+        <n-input v-model:value="searchTerm" placeholder="Search customers..." clearable  class="w-full sm:w-64" />
+        <n-button type="primary" @click="openAddDrawer">Add Customer</n-button>
+      </div>
     </div>
 
-    <!-- Customers Table -->
+    <!-- Search and Table -->
+    <!-- <n-card class="mb-1">
+      <div class="flex gap-4 items-center">
+         <n-form-item label="Search"> 
+        <n-input v-model:value="searchTerm" placeholder="Search customers..." clearable style="width: 250px" />
+      </div>
+    </n-card> -->
+
     <n-card>
-      <n-data-table
-        :columns="columns"
-        :data="customers"
-        :loading="loading"
-        :pagination="{ pageSize: 10 }"
-        striped
-      />
+      <n-data-table :columns="columns" :data="paginatedCustomers" :loading="loading" :pagination="false" striped />
+
+      <!-- Custom Pagination -->
+      <div class="mt-4 flex justify-between items-center">
+        <div class="text-sm text-gray-600">
+          Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalCount) }} of {{
+          totalCount }} entries
+        </div>
+        <n-pagination v-model:page="currentPage" v-model:page-size="pageSize"
+          :page-count="Math.ceil(totalCount / pageSize)" :page-sizes="[2, 5, 10, 20, 50]" show-size-picker
+          show-quick-jumper @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+      </div>
     </n-card>
 
     <!-- Customer Drawer -->
-    <n-drawer
-      v-model:show="showDrawer"
-      :width="502"
-      placement="right"
-      :trap-focus="false"
-    >
+    <n-drawer v-model:show="showDrawer" :width="502" placement="right" :trap-focus="false">
       <n-drawer-content :title="formTitle" closable>
-        <n-form
-          ref="formRef"
-          :model="formData"
-          label-placement="top"
-        >
+        <n-form ref="formRef" :model="formData" :rules="rules" label-placement="top">
           <n-form-item label="Name" path="name" required>
             <n-input v-model:value="formData.name" placeholder="Customer name" />
           </n-form-item>
 
-          <n-form-item label="Email" path="email">
-            <n-input v-model:value="formData.email" placeholder="Email address" />
-          </n-form-item>
 
-          <n-form-item label="Phone" path="phone">
+          <n-form-item label="Phone" path="phone" required>
             <n-input v-model:value="formData.phone" placeholder="Phone number" />
           </n-form-item>
 
+          <div class="grid grid-cols-2 gap-4">
+            <n-form-item label="Credit Balance" path="creditBalance">
+              <n-input-number v-model:value="formData.creditBalance" placeholder="Credit Balance"
+                :disabled="isEditing" />
+            </n-form-item>
+          </div>
           <n-form-item label="Address" path="address">
             <n-input v-model:value="formData.address" placeholder="Street address" />
           </n-form-item>
 
-          <div class="grid grid-cols-3 gap-4">
+          <div class="grid grid-cols-2 gap-4">
             <n-form-item label="City" path="city">
               <n-input v-model:value="formData.city" placeholder="City" />
             </n-form-item>
-
-            <n-form-item label="State" path="state">
-              <n-input v-model:value="formData.state" placeholder="State" />
-            </n-form-item>
-
-            <n-form-item label="Zip Code" path="zipCode">
-              <n-input v-model:value="formData.zipCode" placeholder="Zip code" />
+            <n-form-item label="Payment Terms" path="paymentTerms">
+              <n-input v-model:value="formData.paymentTerms" placeholder="Payment terms" />
             </n-form-item>
           </div>
 
