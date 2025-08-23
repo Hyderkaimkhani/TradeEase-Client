@@ -4,10 +4,21 @@ import vue from '@vitejs/plugin-vue'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
+   build: {
+    chunkSizeWarningLimit: 1000, // Increase warning limit
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Ignore specific warnings
+        if (warning.code === 'UNUSED_EXTERNAL_IMPORT') return;
+        if (warning.code === 'THIS_IS_UNDEFINED') return;
+        warn(warning);
+      }
+    }
+  },
   server: {
     proxy: {
       '/api': {
-        target: 'https://tradeeaseapi-fwa6aqc2dhasbpdq.canadacentral-01.azurewebsites.net',
+        target: 'https://tradeeaseapi.azurewebsites.net',
         changeOrigin: true,
         secure: true,
         configure: (proxy, _options) => {

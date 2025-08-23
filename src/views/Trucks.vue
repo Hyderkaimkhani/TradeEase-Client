@@ -49,7 +49,7 @@ const formData = reactive({
   capacity: 0,
   fuelType: '',
   mileage: 0,
-  availability: 'available',
+  availability: 'available' as const,
   lastMaintenance: ''
 });
 

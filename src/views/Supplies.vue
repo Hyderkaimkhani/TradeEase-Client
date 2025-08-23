@@ -19,7 +19,7 @@ import {
 import { useSupplies } from '../composables/useSupplies';
 import { FormInst } from 'naive-ui';
 import { supplyColumns } from '../Constants/GridColumns';
-import { EntityType, PaymentStatus } from '../Constants/Enums';
+import { PaymentStatus } from '../Constants/Enums';
 import { useCustomers } from '../composables/useCustomers';
 import { useCommon } from '../composables/useCommon';
 
@@ -40,12 +40,6 @@ const {
 const currentPage = ref(1);
 const pageSize = ref(10);
 const totalCount = ref(0);
-
-// Computed: Paginated supplies
-const paginatedSupplies = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value;
-  return supplies.value.slice(start, start + pageSize.value);
-});
 
 // Pagination handlers
 const handlePageChange = (page: number) => {

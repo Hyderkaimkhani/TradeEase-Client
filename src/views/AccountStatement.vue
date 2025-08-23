@@ -96,28 +96,20 @@ async function downloadStatement() {
   loading.value = true;
   try {
     // Use fetchStatement but with export URL
-    const url = '/api/AccountTransaction/export-statement';
+    // const accountName = form.accountId ? accountList.find(a => a.value === form.accountId)?.label : 'All';
+    // const entityName = form.entityId ? entityList.find(e => e.value === form.entityId)?.label : 'All';
+
     // Directly use apiService for file download
     const filteredFromDate = new Date(form.fromDate!).toISOString().split('T')[0];
     const filteredToDate = new Date(form.toDate!).toISOString().split('T')[0];
-    const params = {
-      accountId: form.accountId || 0,
-      entityId: form.entityId || 0,
-      fromDate: filteredFromDate,
-      toDate: filteredToDate,
-    };
-    const response = await exportStatement({
+    // const fileName = `AccountStatement_${form || 'All'}_${form.entityId || 'All'}_${filteredFromDate}_to_${filteredToDate}.pdf`; 
+    
+    await exportStatement({
         accountId: form.accountId || 0,
       entityId: form.entityId || 0,
       fromDate: filteredFromDate,
       toDate: filteredToDate,
     });
-
-    if (response.isError) {
-      message.error('Failed to export statement');
-      return;
-    }
-
 
     // const blob = await response.blob();
     // const urlBlob = window.URL.createObjectURL(blob);

@@ -15,7 +15,6 @@ import {
 import {
   HomeOutline as HomeIcon,
   PeopleOutline as PeopleIcon,
-  CarOutline as TruckIcon,
   PersonOutline as PersonIcon,
   LogOutOutline as LogOutIcon,
   MenuOutline as MenuIcon,

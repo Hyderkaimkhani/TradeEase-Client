@@ -19,8 +19,7 @@ import {
 import { useOrders } from '../composables/useOrders';
 import { FormInst } from 'naive-ui';
 import { orderColumns } from '../Constants/GridColumns';
-import type { RuleType } from 'async-validator';
-import { EntityType, OrderStatus, PaymentStatus } from '../Constants/Enums';
+import { OrderStatus, PaymentStatus } from '../Constants/Enums';
 import { useCustomers } from '../composables/useCustomers';
 import { useCommon } from '../composables/useCommon';
 
@@ -107,8 +106,6 @@ const totalSellingPrice = computed(() => {
   const price = formData.sellingPrice || 0
   return +(qty * price).toFixed(2) // Ensures precision
 })
-
-const fruitOptions = fruits;
 
 // Status options
 const statusOptions = [

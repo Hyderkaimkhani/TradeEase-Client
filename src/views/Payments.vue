@@ -19,13 +19,11 @@ import {
 import { usePayments } from '../composables/usePayments';
 import { FormInst } from 'naive-ui';
 import { paymentColumns } from '../Constants/GridColumns';
-import type { RuleType } from 'async-validator';
 import { PaymentMethod, TransactionDirection } from '../Constants/Enums';
 import { useCustomers } from '../composables/useCustomers';
 import { useRouter } from 'vue-router';
 import { PaymentAllocation } from '../Interfaces/payment.interface';
 import { useAccounts } from '../composables/useAccounts';
-import { tr } from 'date-fns/locale';
 
 // Message API
 const message = useMessage();
@@ -55,8 +53,6 @@ const currentPaymentId = ref<number | null>(null);
 
 // Filter state
 const selectedEntityId = ref<number | null>(null);
-const selectedTransactionFlow = ref<string | null>(null);
-const selectedAccountId = ref<string | null>(null);
 
 // Pagination state
 const currentPage = ref(1);
@@ -195,27 +191,28 @@ const openAddDrawer = () => {
 };
 
 // Open drawer for editing
-const openEditDrawer = (row: any) => {
-  console.log('Opening edit drawer with row data:', row);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// const _openEditDrawer = (row: any) => {
+//   console.log('Opening edit drawer with row data:', row);
 
-  resetForm();
-  formTitle.value = 'Edit Payment';
-  isEditing.value = true;
-  currentPaymentId.value = row.id;
+//   resetForm();
+//   formTitle.value = 'Edit Payment';
+//   isEditing.value = true;
+//   currentPaymentId.value = row.id;
 
-  // Fill form with payment data
-  formData.transactionFlow = row.transactionFlow;
-  formData.entityId = row.entityId;
-  formData.accountId = row.accountId;
-  formData.customerName = row.customerName || '';
-  formData.amount = row.amount;
-  formData.paymentDate = row.paymentDate;
-  formData.paymentMethod = row.paymentMethod || PaymentMethod.Cash;
-  formData.notes = row.notes || '';
+//   // Fill form with payment data
+//   formData.transactionFlow = row.transactionFlow;
+//   formData.entityId = row.entityId;
+//   formData.accountId = row.accountId;
+//   formData.customerName = row.customerName || '';
+//   formData.amount = row.amount;
+//   formData.paymentDate = row.paymentDate;
+//   formData.paymentMethod = row.paymentMethod || PaymentMethod.Cash;
+//   formData.notes = row.notes || '';
 
-  console.log('Form data after populating:', formData);
-  showDrawer.value = true;
-};
+//   console.log('Form data after populating:', formData);
+//   showDrawer.value = true;
+// };
 
 const openViewDrawer = async (row: any) => {
   console.log('Opening view drawer with row data:', row);
@@ -365,36 +362,32 @@ const handlePageSizeChange = (size: number) => {
 const columns = paymentColumns(openViewDrawer, handleDelete);
 
 // Pagination configuration
-const paginationConfig = computed(() => {
-  console.log('Pagination config updated:', {
-    page: currentPage.value,
-    pageSize: pageSize.value,
-    itemCount: totalCount.value,
-    totalPages: Math.ceil(totalCount.value / pageSize.value)
-  });
+
+// const paginationConfig = computed(() => {
+//   console.log('Pagination config updated:', {
+//     page: currentPage.value,
+//     pageSize: pageSize.value,
+//     itemCount: totalCount.value,
+//     totalPages: Math.ceil(totalCount.value / pageSize.value)
+//   });
   
-  return {
-    page: currentPage.value,
-    pageSize: pageSize.value,
-    pageSizes: [10, 20, 50],
-    showSizePicker: true,
-    showQuickJumper: true,
-    itemCount: totalCount.value,
-    onUpdatePage: handlePageChange,
-    onUpdatePageSize: handlePageSizeChange,
-    prefix: () => `Total ${totalCount.value} items`
-  };
-});
+//   return {
+//     page: currentPage.value,
+//     pageSize: pageSize.value,
+//     pageSizes: [10, 20, 50],
+//     showSizePicker: true,
+//     showQuickJumper: true,
+//     itemCount: totalCount.value,
+//     onUpdatePage: handlePageChange,
+//     onUpdatePageSize: handlePageSizeChange,
+//     prefix: () => `Total ${totalCount.value} items`
+//   };
+// });
 
 // Load payments on mount
 loadPayments();
 getCustomersList();
 getAccountsDropdown();
-
-// Update total count when payments are loaded
-const updateTotalCount = (count: number) => {
-  totalCount.value = count;
-};
 
 // State for expanded allocation details
 const expandedAllocation = ref<number | null>(null);

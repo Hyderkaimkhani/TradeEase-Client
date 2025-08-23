@@ -2,14 +2,11 @@
 import { ref, onMounted, h } from 'vue';
 import {
   NCard,
-  NSpace,
   NGrid,
   NGi,
-  NStatistic,
   NNumberAnimation,
   NIcon,
   NDataTable,
-  NPagination,
   NTag
 } from 'naive-ui';
 import {

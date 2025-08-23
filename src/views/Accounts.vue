@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive,computed } from 'vue'
+import { ref, reactive } from 'vue'
 import { 
   NButton,
   NCard,
@@ -18,7 +18,6 @@ import { FormInst } from 'naive-ui'
 import { useAccounts } from '../composables/useAccounts'
 import { accountColumns } from '../Constants/GridColumns'
 import type { CreateAccountRequest, UpdateAccountRequest, Account } from '../Interfaces/account.interface'
-import { rowDark } from 'naive-ui/es/legacy-grid/styles'
 
 const message = useMessage()
 
@@ -38,19 +37,19 @@ const pageSize = ref(10)
 const accountSearch = ref('')
 
 // Search state
-const searchTerm = ref('');
+// const searchTerm = ref('');
 
 // Computed: Filtered Accounts by search term
-const filteredAccounts = computed(() => {
-  if (!searchTerm.value) return accounts.value;
-  const term = searchTerm.value.toLowerCase();
-  return accounts.value.filter(a =>
-    (a.name && a.name.toLowerCase().includes(term)) ||
-    (a.bankName && a.bankName.toLowerCase().includes(term)) ||
-    (a.type && a.type.toLowerCase().includes(term)) ||
-    (a.accountNumber && a.accountNumber.toLowerCase().includes(term))
-  );
-});
+// const filteredAccounts = computed(() => {
+//   if (!searchTerm.value) return accounts.value;
+//   const term = searchTerm.value.toLowerCase();
+//   return accounts.value.filter(a =>
+//     (a.name && a.name.toLowerCase().includes(term)) ||
+//     (a.bankName && a.bankName.toLowerCase().includes(term)) ||
+//     (a.type && a.type.toLowerCase().includes(term)) ||
+//     (a.accountNumber && a.accountNumber.toLowerCase().includes(term))
+//   );
+// });
 
 // Drawer state
 const showDrawer = ref(false)

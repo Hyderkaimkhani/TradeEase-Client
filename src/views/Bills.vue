@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, h } from 'vue';
+import { ref, reactive, computed} from 'vue';
 import {
   NButton,
   NCard,
@@ -15,17 +15,11 @@ import {
   NModal,
   NPagination,
   useMessage,
-  NTag,
-  NPopconfirm,
-  NIcon,
 } from 'naive-ui';
 import { useBills } from '../composables/useBills';
 import { useCustomers } from '../composables/useCustomers';
-import { FormInst } from 'naive-ui';
-import { EntityType } from '../Constants/Enums';
 import { Bill } from '../Interfaces/bill.interface';
 import { billColumns } from '../Constants/GridColumns';
-import { PencilOutline as EditIcon } from '@vicons/ionicons5';
 
 // Message API
 const message = useMessage();
@@ -34,11 +28,9 @@ const message = useMessage();
 const {
   bills,
   loading,
-  error,
   totalCount,
   fetchBills,
   createBill,
-  updateBill,
   getBillById,
   deleteBill,
 } = useBills();
@@ -70,12 +62,6 @@ const formData = reactive({
   notes: '',
 });
 
-// Entity type options
-const entityTypeOptions = [
-  { label: 'Customer', value: EntityType.Customer },
-  { label: 'Supplier', value: EntityType.Supplier },
-];
-
 // Computed total count
 const computedTotalCount = computed(() => totalCount.value);
 
@@ -93,16 +79,16 @@ const loadBills = async () => {
 };
 
 // Handle filter changes
-const handleEntityTypeChange = (value: string | null) => {
-  selectedEntityType.value = value;
-  selectedEntityId.value = null;
-  formData.entityId = null;
-  currentPage.value = 1;
-  if (value) {
-    getCustomersList();
-  }
-  loadBills();
-};
+// const handleEntityTypeChange = (value: string | null) => {
+//   selectedEntityType.value = value;
+//   selectedEntityId.value = null;
+//   formData.entityId = null;
+//   currentPage.value = 1;
+//   if (value) {
+//     getCustomersList();
+//   }
+//   loadBills();
+// };
 
 const handleEntityFilterChange = (value: number | null) => {
   selectedEntityId.value = value;
@@ -144,15 +130,16 @@ const handleCreateBill = async () => {
 };
 
 // View bill details
-const viewBill = async (billId: number) => {
-  try {
-    const bill = await getBillById(billId);
-    //currentBill.value = bill;
-    showBillModal.value = true;
-  } catch (error: any) {
-    message.error(error.message || 'Failed to fetch bill details');
-  }
-};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// const viewBill = async (billId: number) => {
+//   try {
+//     const bill = await getBillById(billId);
+//     //currentBill.value = bill;
+//     showBillModal.value = true;
+//   } catch (error: any) {
+//     message.error(error.message || 'Failed to fetch bill details');
+//   }
+// };
 
 // Delete bill
 const handleDeleteBill = async (billId: number) => {
@@ -240,21 +227,22 @@ const openEditDrawer = async (row: any) => {
   }
 };
 
-const handleUpdateBill = async () => {
-  try {
-    if (!currentBillId.value) return;
-    await updateBill({
-      Id: currentBillId.value,
-      dueDate: formData.dueDate,
-      notes: formData.notes,
-    });
-    message.success('Bill updated successfully');
-    showDrawer.value = false;
-    await loadBills();
-  } catch (error: any) {
-    message.error(error.message || 'Failed to update bill');
-  }
-};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// const handleUpdateBill = async () => {
+//   try {
+//     if (!currentBillId.value) return;
+//     await updateBill({
+//       Id: currentBillId.value,
+//       dueDate: formData.dueDate,
+//       notes: formData.notes,
+//     });
+//     message.success('Bill updated successfully');
+//     showDrawer.value = false;
+//     await loadBills();
+//   } catch (error: any) {
+//     message.error(error.message || 'Failed to update bill');
+//   }
+// };
 
 // Table columns
 const columns = billColumns(openViewDrawer, handleDeleteBill, openEditDrawer);
