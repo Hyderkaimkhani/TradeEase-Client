@@ -17,6 +17,7 @@ import {
   useMessage,
 } from 'naive-ui';
 import { useOrders } from '../composables/useOrders';
+import { useSupplies } from '../composables/useSupplies';
 import { FormInst } from 'naive-ui';
 import { orderColumns } from '../Constants/GridColumns';
 import { OrderStatus, PaymentStatus } from '../Constants/Enums';
@@ -52,9 +53,24 @@ const showDrawer = ref(false);
 const formTitle = ref('Add Order');
 const isEditing = ref(false);
 const currentOrderId = ref<number | null>(null);
-
 // Filter state
-const selectedFruitId = ref<number | null>(null);
+let selectedFruitId = ref<number | null>(null);
+
+// Unassigned supplies integration
+const { fetchUnassignedSupplies, getUnassignedSuppliesDropdown, unassignedSupplies } = useSupplies();
+const selectedUnassignedSupplyId = ref<number | null>(null);
+
+function handleUnassignedSupplyChange(id: number | null) {
+  selectedUnassignedSupplyId.value = id;
+  const supply = unassignedSupplies.value.find(s => s.id === id);
+  if (supply) {
+    formData.quantity = supply.quantity;
+    formData.truckNumber = supply.truckNumber || '';
+    formData.fruitId = supply.fruitId;
+  }
+}
+
+
 const selectedCustomerId = ref<number | null>(null);
 
 // Pagination state
@@ -398,9 +414,11 @@ const columns = orderColumns(openEditDrawer, handleDelete);
 const computedTotalCount = computed(() => totalCount.value);
 
 // Load orders on mount
+
 loadOrders();
 getCustomersList();
 fetchFruits();
+fetchUnassignedSupplies();
 
 </script>
 
@@ -449,7 +467,8 @@ fetchFruits();
             <n-select v-model:value="selectedStatus" placeholder="Select status" :options="statusOptions" clearable />
           </n-form-item>
           <n-form-item label="Payment Status">
-            <n-select v-model:value="selectedPaymentStatus" placeholder="Payment status" :options="paymentStatusOptions" clearable />
+            <n-select v-model:value="selectedPaymentStatus" placeholder="Payment status" :options="paymentStatusOptions"
+              clearable />
           </n-form-item>
           <div class="flex items-center">
             <n-button @click="loadOrdersWithAdvancedFilters" type="primary" :loading="loading">
@@ -467,31 +486,18 @@ fetchFruits();
 
     <!-- Orders Table -->
     <n-card>
-      <n-data-table 
-        :key="`orders-${currentPage}-${pageSize}-${totalCount}`"
-        :columns="columns" 
-        :data="orders" 
-        :loading="loading" 
-        :pagination="false"
-        striped 
-      />
-      
+      <n-data-table :key="`orders-${currentPage}-${pageSize}-${totalCount}`" :columns="columns" :data="orders"
+        :loading="loading" :pagination="false" striped />
+
       <!-- Custom Pagination -->
       <div class="mt-4 flex justify-between items-center">
         <div class="text-sm text-gray-600">
           Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, computedTotalCount) }}
           of {{ computedTotalCount }} entries
         </div>
-        <n-pagination 
-          v-model:page="currentPage" 
-          v-model:page-size="pageSize"
-          :page-count="Math.ceil(computedTotalCount / pageSize)" 
-          :page-sizes="[10, 20, 50]" 
-          show-size-picker
-          show-quick-jumper 
-          @update:page="handlePageChange" 
-          @update:page-size="handlePageSizeChange" 
-        />
+        <n-pagination v-model:page="currentPage" v-model:page-size="pageSize"
+          :page-count="Math.ceil(computedTotalCount / pageSize)" :page-sizes="[10, 20, 50]" show-size-picker
+          show-quick-jumper @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
       </div>
     </n-card>
 
@@ -499,13 +505,17 @@ fetchFruits();
     <n-drawer v-model:show="showDrawer" :width="502" placement="right" :trap-focus="false">
       <n-drawer-content :title="formTitle" closable>
         <n-form ref="formRef" :model="formData" :rules="rules" :key="formKey" label-placement="top">
+          <n-form-item v-if="!isEditing" label="Unassigned Supply">
+            <n-select v-model:value="selectedUnassignedSupplyId" :options="getUnassignedSuppliesDropdown()"
+              placeholder="Select Unassigned Supply" clearable @update:value="handleUnassignedSupplyChange" />
+          </n-form-item>
           <div class="grid grid-cols-2 gap-4">
-            <n-form-item label="Order Number">
+            <n-form-item v-if="isEditing"  label="Order Number">
               <n-input v-model:value="formData.orderNumber" placeholder="ORD-0001" disabled />
             </n-form-item>
-            <n-form-item label="Fruit" path="fruitId" >
-              <n-select v-model:value="formData.fruitId" placeholder="Select fruit" :options="fruits" filterable
-                clearable :disabled="isEditing" />
+            <n-form-item label="Fruit" path="fruitId">
+              <n-select v-model:value="formData.fruitId" placeholder="Select fruit" :options="fruits" filterable 
+                clearable disabled />
             </n-form-item>
           </div>
           <div class="grid grid-cols-2 gap-4">
@@ -514,7 +524,7 @@ fetchFruits();
                 filterable clearable :disabled="isEditing" />
             </n-form-item>
             <n-form-item label="Truck Number" path="truckNumber" required>
-              <n-input v-model:value="formData.truckNumber" placeholder="Truck number" />
+              <n-input v-model:value="formData.truckNumber" placeholder="Truck number" disabled />
             </n-form-item>
           </div>
 
@@ -544,10 +554,12 @@ fetchFruits();
           </div>
           <div class="grid grid-cols-2 gap-4">
             <n-form-item v-if="isEditing" label="Purchase Price" path="purchasePrice">
-              <n-input-number v-model:value="formData.purchasePrice" placeholder="Purchase price" :precision="2" disabled />
+              <n-input-number v-model:value="formData.purchasePrice" placeholder="Purchase price" :precision="2"
+                disabled />
             </n-form-item>
             <n-form-item v-if="isEditing" label="Total Purchase Price" path="totalPusrchasePrice">
-              <n-input-number v-model:value="formData.totalPusrchasePrice" placeholder="Total Purchase Price" :precision="2" disabled />
+              <n-input-number v-model:value="formData.totalPusrchasePrice" placeholder="Total Purchase Price"
+                :precision="2" disabled />
             </n-form-item>
           </div>
           <div class="grid grid-cols-2 gap-4">
@@ -563,14 +575,14 @@ fetchFruits();
             </n-form-item>
           </div>
 
-<div class="grid grid-cols-2 gap-4">
-          <n-form-item label="Status" path="status">
-            <n-select v-model:value="formData.status" placeholder="Select status" :options="statusOptions" />
-          </n-form-item>
-          <n-form-item label="Payment Status" path="paymentStatus">
+          <div class="grid grid-cols-2 gap-4">
+            <n-form-item label="Status" path="status">
+              <n-select v-model:value="formData.status" placeholder="Select status" :options="statusOptions" />
+            </n-form-item>
+            <n-form-item label="Payment Status" path="paymentStatus">
               <n-input v-model:value="formData.paymentStatus" placeholder="Payment Status" :precision="2" disabled />
             </n-form-item>
-</div>
+          </div>
           <n-form-item label="Notes" path="notes">
             <n-input v-model:value="formData.notes" type="textarea" placeholder="Additional notes" :rows="2" />
           </n-form-item>

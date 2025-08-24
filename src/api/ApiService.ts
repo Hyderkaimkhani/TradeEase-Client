@@ -8,8 +8,8 @@ export class ApiService {
 
     constructor() {
         // In development, use proxy (empty baseURL), in production use full URL
-        this.baseURL = import.meta.env.DEV ? 'https://localhost:44310' : import.meta.env.VITE_API_URL //|| 'https://tradeeaseapi-fwa6aqc2dhasbpdq.canadacentral-01.azurewebsites.net');
-
+        this.baseURL = import.meta.env.DEV ? 'https://localhost:44310' : import.meta.env.VITE_API_URL;
+        console.log("Base URL:", this.baseURL)
         this.api = axios.create({
             baseURL: this.baseURL,
             headers: {

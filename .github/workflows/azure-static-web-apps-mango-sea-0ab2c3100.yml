@@ -44,7 +44,7 @@ jobs:
           output_location: "dist" # Vue build output
           github_id_token: ${{ steps.idtoken.outputs.result }}
         env:
-          VITE_API_BASE: ${{ vars.VITE_API_BASE }} # 👈 injects from environment
+          VITE_API_URL: ${{ vars.VITE_API_URL }} # 👈 injects from environment
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
