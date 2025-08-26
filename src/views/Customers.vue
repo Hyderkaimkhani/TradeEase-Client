@@ -197,7 +197,7 @@ fetchCustomers();
         <!-- <n-input v-model:value="accountSearch" placeholder="Search by Account #" class="w-full sm:w-64"
           @keydown.enter="handleSearch" />
         <n-button tertiary @click="handleSearch">Search</n-button> -->
-        <n-input v-model:value="searchTerm" placeholder="Search customers..." clearable  class="w-full sm:w-64" />
+        <n-input v-model:value="searchTerm" placeholder="Search" clearable  class="w-full sm:w-64" />
         <n-button type="primary" @click="openAddDrawer">Add Customer</n-button>
       </div>
     </div>
@@ -220,7 +220,7 @@ fetchCustomers();
           totalCount }} entries
         </div>
         <n-pagination v-model:page="currentPage" v-model:page-size="pageSize"
-          :page-count="Math.ceil(totalCount / pageSize)" :page-sizes="[2, 5, 10, 20, 50]" show-size-picker
+          :page-count="Math.ceil(totalCount / pageSize)" :page-sizes="[10, 20, 50]" show-size-picker
           show-quick-jumper @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
       </div>
     </n-card>

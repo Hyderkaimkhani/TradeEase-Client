@@ -361,7 +361,7 @@ fetchFruits();
           v-model:page="currentPage"
           v-model:page-size="pageSize"
           :page-count="Math.ceil(computedTotalCount / pageSize)"
-          :page-sizes="[2, 5, 10, 20, 50]"
+          :page-sizes="[10, 20, 50]"
           show-size-picker
           show-quick-jumper
           @update:page="handlePageChange"

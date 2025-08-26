@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { 
   NButton,
   NCard,
@@ -12,7 +12,8 @@ import {
   NInput,
   NInputNumber,
   NSelect,
-  useMessage
+  useMessage,
+  NPagination
 } from 'naive-ui'
 import { FormInst } from 'naive-ui'
 import { useAccounts } from '../composables/useAccounts'
@@ -33,23 +34,29 @@ const {
 
 // Pagination & filters
 const page = ref(1)
+const currentPage = ref(1);
 const pageSize = ref(10)
-const accountSearch = ref('')
+const searchTerm = ref('')
 
 // Search state
 // const searchTerm = ref('');
 
 // Computed: Filtered Accounts by search term
-// const filteredAccounts = computed(() => {
-//   if (!searchTerm.value) return accounts.value;
-//   const term = searchTerm.value.toLowerCase();
-//   return accounts.value.filter(a =>
-//     (a.name && a.name.toLowerCase().includes(term)) ||
-//     (a.bankName && a.bankName.toLowerCase().includes(term)) ||
-//     (a.type && a.type.toLowerCase().includes(term)) ||
-//     (a.accountNumber && a.accountNumber.toLowerCase().includes(term))
-//   );
-// });
+const filteredAccounts = computed(() => {
+  if (!searchTerm.value) return accounts.value;
+  const term = searchTerm.value.toLowerCase();
+  return accounts.value.filter(a =>
+    (a.name && a.name.toLowerCase().includes(term)) ||
+    (a.bankName && a.bankName.toLowerCase().includes(term)) ||
+    (a.type && a.type.toLowerCase().includes(term)) ||
+    (a.accountNumber && a.accountNumber.toLowerCase().includes(term))
+  );
+});
+
+const paginatedAccounts = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  return filteredAccounts.value.slice(start, start + pageSize.value);
+});
 
 // Drawer state
 const showDrawer = ref(false)
@@ -157,7 +164,7 @@ const handleSubmit = () => {
         }
         showDrawer.value = false
         // refresh current page to keep pagination consistent
-        await fetchAccounts(page.value, pageSize.value, accountSearch.value)
+        await fetchAccounts(page.value, pageSize.value)
       } catch (err: any) {
         message.error(err.message || 'Operation failed')
       }
@@ -169,7 +176,7 @@ const handleDelete = async (id: number) => {
   try {
     await deleteAccount(id)
     message.success('Account deleted successfully')
-    await fetchAccounts(page.value, pageSize.value, accountSearch.value)
+    await fetchAccounts(page.value, pageSize.value)
   } catch (err: any) {
     message.error(err.message || 'Failed to delete account')
   }
@@ -179,19 +186,19 @@ const columns = accountColumns(openEditDrawer, handleDelete)
 
 const handlePageChange = async (newPage: number) => {
   page.value = newPage
-  await fetchAccounts(page.value, pageSize.value, accountSearch.value)
+  await fetchAccounts(page.value, pageSize.value)
 }
 
 const handlePageSizeChange = async (newSize: number) => {
   pageSize.value = newSize
   page.value = 1
-  await fetchAccounts(page.value, pageSize.value, accountSearch.value)
+  await fetchAccounts(page.value, pageSize.value)
 }
 
-const handleSearch = async () => {
-  page.value = 1
-  await fetchAccounts(page.value, pageSize.value, accountSearch.value)
-}
+// const handleSearch = async () => {
+//   page.value = 1
+//   await fetchAccounts(page.value, pageSize.value, accountSearch.value)
+// }
 
 // initial load
 fetchAccounts(page.value, pageSize.value)
@@ -202,23 +209,26 @@ fetchAccounts(page.value, pageSize.value)
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
       <h1 class="text-2xl font-bold">Accounts</h1>
       <div class="flex items-center gap-2 w-full sm:w-auto">
-        <n-input v-model:value="accountSearch" placeholder="Search by Account #" class="w-full sm:w-64"
-          @keydown.enter="handleSearch" />
-        <n-button tertiary @click="handleSearch">Search</n-button>
+        <n-input v-model:value="searchTerm" placeholder="Search" clearable class="w-full sm:w-64"/>
+        <!-- <n-button tertiary @click="handleSearch">Search</n-button> -->
         <!-- <n-input v-model:value="searchTerm" placeholder="Search Account" clearable  class="w-full sm:w-64" /> -->
         <n-button type="primary" @click="openAddDrawer">Add Account</n-button>
       </div>
     </div>
 
     <n-card>
-      <n-data-table :columns="columns" :data="accounts" :loading="loading" :bordered="false" :pagination="{
-          page: page,
-          pageSize: pageSize,
-          pageSizes: [10, 20, 50, 100],
-          itemCount: totalCount,
-          onUpdatePage: handlePageChange,
-          onUpdatePageSize: handlePageSizeChange
-        }" striped />
+      <n-data-table :columns="columns" :data="paginatedAccounts" :loading="loading" :bordered="false" :pagination="false" striped
+         />
+        <!-- Custom Pagination -->
+      <div class="mt-4 flex justify-between items-center">
+        <div class="text-sm text-gray-600">
+          Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalCount) }} of {{
+          totalCount }} entries
+        </div>
+        <n-pagination v-model:page="currentPage" v-model:page-size="pageSize"
+          :page-count="Math.ceil(totalCount / pageSize)" :page-sizes="[10, 20, 50]" show-size-picker
+          show-quick-jumper @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+      </div>
     </n-card>
 
     <n-drawer v-model:show="showDrawer" :width="502" placement="right" :trap-focus="false">
