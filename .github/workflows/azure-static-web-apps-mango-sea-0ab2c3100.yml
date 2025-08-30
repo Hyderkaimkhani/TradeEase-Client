@@ -23,38 +23,45 @@ jobs:
         with:
           submodules: true
           lfs: false
-
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Build with environment variables
+        run: VITE_API_URL=${{ vars.VITE_API_URL }} npm run build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+      
       - name: Install OIDC Client from Core Package
         run: npm install @actions/core@1.6.0 @actions/http-client
-
+      
       - name: Get Id Token
         uses: actions/github-script@v6
         id: idtoken
         with:
-          script: |
-            const coredemo = require('@actions/core')
-            return await coredemo.getIDToken()
-          result-encoding: string
-
-      # 👇 New: ensure Vue build gets VITE_API_URL
-      - name: Build Vue App
-        run: npm install && npm run build
-        env:
-          VITE_API_URL: ${{ vars.VITE_API_URL }}
-
-      - name: Build And Deploy
-        id: builddeploy
+           script: |
+               const coredemo = require('@actions/core')
+               return await coredemo.getIDToken()
+           result-encoding: string
+      
+      - name: Deploy
+        id: deploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_MANGO_SEA_0AB2C3100 }}
           action: "upload"
-          app_location: "/"   # Vue source code root
-          api_location: ""    # optional for backend
-          output_location: "dist" # Vue build output
+          app_location: "/"
+          api_location: ""
+          output_location: "dist"
           github_id_token: ${{ steps.idtoken.outputs.result }}
-
+      
       - name: Debug Env
-        run: echo "VITE_API_URL=$VITE_API_URL"
+        run: echo "VITE_API_URL=${{ vars.VITE_API_URL }}"
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
