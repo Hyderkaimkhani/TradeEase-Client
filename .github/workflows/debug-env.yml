@@ -1,0 +1,17 @@
+name: Debug Env Vars
+
+on:
+  workflow_dispatch:   # allows you to trigger manually from GitHub UI
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    environment: development   # 👈 must match your GitHub Environment name
+    steps:
+      - name: Print env from vars
+        run: echo "VITE_API_URL=${{ vars.VITE_API_URL }}"
+
+      - name: Print env from job context
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+        run: echo "VITE_API_URL=$VITE_API_URL"
