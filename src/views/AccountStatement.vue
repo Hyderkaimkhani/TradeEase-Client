@@ -135,7 +135,7 @@ getCustomersList();
 <template>
   <div>
     <n-card title="Account Statement" class="mb-4">
-      <n-form :model="form" :rules="rules" label-placement="top" class="grid grid-cols-2 gap-4">
+      <n-form :model="form" :rules="rules" label-placement="top" class="grid grid-cols-4 gap-2">
         <n-form-item label="Account" path="accountId">
           <n-select v-model:value="form.accountId" :options="accountList" placeholder="Select account" clearable />
         </n-form-item>

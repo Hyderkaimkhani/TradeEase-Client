@@ -445,7 +445,7 @@ const toggleAllocationDetails = (allocationId: number) => {
           of {{ computedTotalCount }} entries
         </div>
         <n-pagination v-model:page="currentPage" v-model:page-size="pageSize"
-          :page-count="Math.ceil(computedTotalCount / pageSize)" :page-sizes="[2, 5, 10, 20, 50]" show-size-picker
+          :page-count="Math.ceil(computedTotalCount / pageSize)" :page-sizes="[10, 20, 50]" show-size-picker
           show-quick-jumper @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
       </div>
     </n-card>

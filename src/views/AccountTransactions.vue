@@ -228,7 +228,7 @@ getAccountsDropdown();
         <div class="text-sm text-gray-600">
           Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, computedTotalCount) }} of {{ computedTotalCount }} entries
         </div>
-        <n-pagination v-model:page="currentPage" v-model:page-size="pageSize" :page-count="Math.ceil(computedTotalCount / pageSize)" :page-sizes="[2, 5, 10, 20, 50]" show-size-picker show-quick-jumper @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+        <n-pagination v-model:page="currentPage" v-model:page-size="pageSize" :page-count="Math.ceil(computedTotalCount / pageSize)" :page-sizes="[10, 20, 50]" show-size-picker show-quick-jumper @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
       </div>
     </n-card>
 
