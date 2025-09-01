@@ -74,8 +74,8 @@ async function getStatement() {
     const filteredFromDate = new Date(form.fromDate!).toISOString().split('T')[0];
     const filteredToDate = new Date(form.toDate!).toISOString().split('T')[0];
     const res = await fetchStatement({
-      accountId: form.accountId || 0,
-      entityId: form.entityId || 0,
+      accountId: form.accountId || null,
+      entityId: form.entityId || null,
       fromDate: filteredFromDate,
       toDate: filteredToDate,
     });
@@ -105,8 +105,8 @@ async function downloadStatement() {
     // const fileName = `AccountStatement_${form || 'All'}_${form.entityId || 'All'}_${filteredFromDate}_to_${filteredToDate}.pdf`; 
     
     await exportStatement({
-        accountId: form.accountId || 0,
-      entityId: form.entityId || 0,
+      accountId: form.accountId || null,
+      entityId: form.entityId || null,
       fromDate: filteredFromDate,
       toDate: filteredToDate,
     });
@@ -159,11 +159,16 @@ getCustomersList();
 
     <n-card v-if="statement" :title="statement.statementTitle">
       <div class="mb-2 text-sm text-gray-600">
-        <div>Account: {{ statement.accountName }}</div>
-        <div>Entity: {{ statement.entityName }}</div>
+        <div v-if="statement.accountName">Account: {{ statement.accountName }}</div>
+        <div v-if="statement.entityName">Entity: {{ statement.entityName }}</div>
         <div>Period: {{ new Date(statement.fromDate).toLocaleDateString() }} - {{ new Date(statement.toDate).toLocaleDateString() }}</div>
         <div>Opening Balance: {{ statement.openingBalance.toLocaleString() }}</div>
         <div>Closing Balance: {{ statement.closingBalance.toLocaleString() }}</div>
+        <!-- <div :style="{ color: statement.closingBalance > 0 ? 'green' : 
+          statement.closingBalance < 0 ? 'red' : 'gray',
+                fontWeight: 'bold' }">
+          Closing Balance: {{ statement.closingBalance.toLocaleString() }}
+        </div> -->
       </div>
       <n-data-table :columns="columns" :data="statement.transactions" striped />
     </n-card>
