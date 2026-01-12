@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vueuse/core": "^14.1.0",
     "axios": "^1.10.0",
     "date-fns": "^2.30.0",
     "naive-ui": "^2.37.3",

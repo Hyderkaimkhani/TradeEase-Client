@@ -3,7 +3,6 @@ import { ref, reactive, computed } from 'vue';
 import {
   NButton,
   NCard,
-  NDataTable,
   NSpace,
   NDrawer,
   NDrawerContent,
@@ -13,10 +12,10 @@ import {
   NInputNumber,
   NSelect,
   NDatePicker,
-  NPagination,
   useMessage,
 } from 'naive-ui';
 import { usePayments } from '../composables/usePayments';
+import ResponsiveDataTable from '../components/ResponsiveDataTable.vue';
 import { FormInst } from 'naive-ui';
 import { paymentColumns } from '../Constants/GridColumns';
 import { PaymentMethod, TransactionDirection } from '../Constants/Enums';
@@ -24,7 +23,8 @@ import { useCustomers } from '../composables/useCustomers';
 import { useRouter } from 'vue-router';
 import { PaymentAllocation } from '../Interfaces/payment.interface';
 import { useAccounts } from '../composables/useAccounts';
-
+import { useBreakpoint } from '../composables/useBreakpoint';
+const { isMobile } = useBreakpoint();
 // Message API
 const message = useMessage();
 
@@ -432,26 +432,25 @@ const toggleAllocationDetails = (allocationId: number) => {
 
     <!-- Payments Table -->
     <n-card>
-      <!-- <div class="mb-4 text-sm text-gray-600">
-        Total Records: {{ computedTotalCount }} | Current Page: {{ currentPage }} | Page Size: {{ pageSize }} | Total Pages: {{ Math.ceil(computedTotalCount / pageSize) }} | Can Go Next: {{ currentPage < Math.ceil(computedTotalCount / pageSize) }}
-      </div> -->
-      <n-data-table :key="`payments-${currentPage}-${pageSize}-${totalCount}`" :columns="columns" :data="payments"
-        :loading="loading" :pagination="false" striped />
-
-      <!-- Custom Pagination -->
-      <div class="mt-4 flex justify-between items-center">
-        <div class="text-sm text-gray-600">
-          Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, computedTotalCount) }}
-          of {{ computedTotalCount }} entries
-        </div>
-        <n-pagination v-model:page="currentPage" v-model:page-size="pageSize"
-          :page-count="Math.ceil(computedTotalCount / pageSize)" :page-sizes="[10, 20, 50]" show-size-picker
-          show-quick-jumper @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
-      </div>
+      <ResponsiveDataTable
+        :key="`payments-${currentPage}-${pageSize}-${totalCount}`"
+        :columns="columns"
+        :data="payments"
+        :loading="loading"
+        :page="currentPage"
+        :page-size="pageSize"
+        :total-count="computedTotalCount"
+        :page-sizes="[10, 20, 50]"
+        title-key="paymentNumber"
+        subtitle-key="customerName"
+        striped
+        @update:page="handlePageChange"
+        @update:page-size="handlePageSizeChange"
+      />
     </n-card>
 
     <!-- Payment Drawer -->
-    <n-drawer v-model:show="showDrawer" :width="502" placement="right" :trap-focus="false">
+    <n-drawer v-model:show="showDrawer" :width="502" :height="isMobile ? '90%' : '100%'" :placement="isMobile ? 'bottom' : 'right'" :trap-focus="false">
       <n-drawer-content :title="formTitle" closable>
         <n-form ref="formRef" :model="formData" :rules="rules" :key="formKey" label-placement="top">
           <div class="grid grid-cols-2 gap-4">

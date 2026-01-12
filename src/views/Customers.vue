@@ -3,7 +3,6 @@ import { ref, reactive, computed } from 'vue';
 import {
   NButton,
   NCard,
-  NDataTable,
   NSpace,
   NDrawer,
   NDrawerContent,
@@ -11,13 +10,14 @@ import {
   NFormItem,
   NInput,
   NInputNumber,
-  NPagination,
   useMessage
 } from 'naive-ui';
 import { useCustomers } from '../composables/useCustomers';
 import { FormInst } from 'naive-ui';
 import { customerColumns } from '../Constants/GridColumns';
-
+import ResponsiveDataTable from '../components/ResponsiveDataTable.vue';
+import { useBreakpoint } from '../composables/useBreakpoint';
+const { isMobile } = useBreakpoint();
 // Message API
 const message = useMessage();
 
@@ -211,22 +211,24 @@ fetchCustomers();
     </n-card> -->
 
     <n-card>
-      <n-data-table :columns="columns" :data="paginatedCustomers" :loading="loading" :pagination="false" striped />
-
-      <!-- Custom Pagination -->
-      <div class="mt-4 flex justify-between items-center">
-        <div class="text-sm text-gray-600">
-          Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalCount) }} of {{
-          totalCount }} entries
-        </div>
-        <n-pagination v-model:page="currentPage" v-model:page-size="pageSize"
-          :page-count="Math.ceil(totalCount / pageSize)" :page-sizes="[10, 20, 50]" show-size-picker
-          show-quick-jumper @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
-      </div>
+      <ResponsiveDataTable
+        :columns="columns"
+        :data="paginatedCustomers"
+        :loading="loading"
+        :page="currentPage"
+        :page-size="pageSize"
+        :total-count="totalCount"
+        :page-sizes="[10, 20, 50]"
+        title-key="name"
+        subtitle-key="city"
+        striped
+        @update:page="handlePageChange"
+        @update:page-size="handlePageSizeChange"
+      />
     </n-card>
 
     <!-- Customer Drawer -->
-    <n-drawer v-model:show="showDrawer" :width="502" placement="right" :trap-focus="false">
+    <n-drawer v-model:show="showDrawer" :width="502" :height="isMobile ? '90%' : '100%'" :placement="isMobile ? 'bottom' : 'right'" :trap-focus="false">
       <n-drawer-content :title="formTitle" closable>
         <n-form ref="formRef" :model="formData" :rules="rules" label-placement="top">
           <n-form-item label="Name" path="name" required>

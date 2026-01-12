@@ -3,7 +3,6 @@ import { ref, reactive, computed} from 'vue';
 import {
   NButton,
   NCard,
-  NDataTable,
   NSpace,
   NDrawer,
   NDrawerContent,
@@ -13,14 +12,15 @@ import {
   NSelect,
   NDatePicker,
   NModal,
-  NPagination,
   useMessage,
 } from 'naive-ui';
 import { useBills } from '../composables/useBills';
+import ResponsiveDataTable from '../components/ResponsiveDataTable.vue';
 import { useCustomers } from '../composables/useCustomers';
 import { Bill } from '../Interfaces/bill.interface';
 import { billColumns } from '../Constants/GridColumns';
-
+import { useBreakpoint } from '../composables/useBreakpoint';
+const { isMobile } = useBreakpoint();
 // Message API
 const message = useMessage();
 
@@ -276,23 +276,25 @@ getCustomersList();
 
     <!-- Bills Table -->
     <n-card>
-      <n-data-table :key="`bills-${currentPage}-${pageSize}-${totalCount}`" :columns="columns" :data="bills"
-        :loading="loading" :pagination="false" striped />
-
-      <!-- Custom Pagination -->
-      <div class="mt-4 flex justify-between items-center">
-        <div class="text-sm text-gray-600">
-          Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, computedTotalCount) }}
-          of {{ computedTotalCount }} entries
-        </div>
-        <n-pagination v-model:page="currentPage" v-model:page-size="pageSize"
-          :page-count="Math.ceil(computedTotalCount / pageSize)" :page-sizes="[2, 5, 10, 20, 50]" show-size-picker
-          show-quick-jumper @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
-      </div>
+      <ResponsiveDataTable
+        :key="`bills-${currentPage}-${pageSize}-${totalCount}`"
+        :columns="columns"
+        :data="bills"
+        :loading="loading"
+        :page="currentPage"
+        :page-size="pageSize"
+        :total-count="computedTotalCount"
+        :page-sizes="[10, 20, 50]"
+        title-key="referenceNumber"
+        subtitle-key="entityName"
+        striped
+        @update:page="handlePageChange"
+        @update:page-size="handlePageSizeChange"
+      />
     </n-card>
 
     <!-- Create Bill Drawer -->
-    <n-drawer v-model:show="showDrawer" :width="600" placement="right">
+    <n-drawer v-model:show="showDrawer" :width="600" :height="isMobile ? '90%' : '100%'" :placement="isMobile ? 'bottom' : 'right'">
       <n-drawer-content :title="formTitle" closable>
         <n-form :model="formData" label-placement="top">
           <div class="grid grid-cols-2 gap-4">

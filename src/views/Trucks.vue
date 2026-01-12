@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive, h } from 'vue';
+import { ref, reactive, h, computed } from 'vue';
 import {
   NButton,
   NCard,
-  NDataTable,
   NSpace,
   NDrawer,
   NDrawerContent,
@@ -17,6 +16,7 @@ import {
   NIcon,
   NInputNumber
 } from 'naive-ui';
+import ResponsiveDataTable from '../components/ResponsiveDataTable.vue';
 import { TrashOutline as DeleteIcon, PencilOutline as EditIcon } from '@vicons/ionicons5';
 import { useTrucks } from '../composables/useTrucks';
 
@@ -32,6 +32,10 @@ const {
   updateTruck,
   deleteTruck
 } = useTrucks();
+
+// Pagination state
+const currentPage = ref(1);
+const pageSize = ref(10);
 
 // Drawer state
 const showDrawer = ref(false);
@@ -297,12 +301,19 @@ fetchTrucks();
 
     <!-- Trucks Table -->
     <n-card>
-      <n-data-table
+      <ResponsiveDataTable
         :columns="columns"
         :data="trucks"
         :loading="loading"
-        :pagination="{ pageSize: 10 }"
+        :page="currentPage"
+        :page-size="pageSize"
+        :total-count="trucks.length"
+        :page-sizes="[10, 20, 50]"
+        title-key="truckNumber"
+        subtitle-key="type"
         striped
+        @update:page="(p) => currentPage = p"
+        @update:page-size="(s) => pageSize = s"
       />
     </n-card>
 

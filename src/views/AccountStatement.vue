@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import {
   NCard,
   NForm,
@@ -7,13 +7,13 @@ import {
   NSelect,
   NDatePicker,
   NButton,
-  NDataTable,
   NSpace,
   useMessage,
 } from 'naive-ui';
 import { useAccounts } from '../composables/useAccounts';
 import { useCustomers } from '../composables/useCustomers';
 import { useAccountTransactions } from '../composables/useAccountTransactions';
+import ResponsiveDataTable from '../components/ResponsiveDataTable.vue';
 
 const message = useMessage();
 const { accountList, getAccountsDropdown } = useAccounts();
@@ -165,7 +165,14 @@ getCustomersList();
         <div>Opening Balance: {{ statement.openingBalance.toLocaleString() }}</div>
         <div>Closing Balance: {{ statement.closingBalance.toLocaleString() }}</div>
       </div>
-      <n-data-table :columns="columns" :data="statement.transactions" striped />
+      <ResponsiveDataTable
+        :columns="columns"
+        :data="statement.transactions"
+        :show-pagination="statement.transactions.length > 10"
+        title-key="description"
+        subtitle-key="accountName"
+        striped
+      />
     </n-card>
   </div>
 </template>

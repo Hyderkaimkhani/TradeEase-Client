@@ -3,7 +3,6 @@ import { ref, reactive, computed } from 'vue';
 import {
   NButton,
   NCard,
-  NDataTable,
   NSpace,
   NDrawer,
   NDrawerContent,
@@ -13,14 +12,15 @@ import {
   NInputNumber,
   NSelect,
   NDatePicker,
-  NPagination,
   useMessage,
   FormInst,
 } from 'naive-ui';
+import ResponsiveDataTable from '../components/ResponsiveDataTable.vue';
 import { useAccountTransactions } from '../composables/useAccountTransactions';
 import { useAccounts } from '../composables/useAccounts';
 import { accountTransactionColumns } from '../Constants/GridColumns';
-
+import { useBreakpoint } from '../composables/useBreakpoint';
+const { isMobile } = useBreakpoint();
 const message = useMessage();
 const {
   transactions,
@@ -223,17 +223,25 @@ getAccountsDropdown();
 
     <!-- Transactions Table -->
     <n-card>
-      <n-data-table :key="`transactions-${currentPage}-${pageSize}-${totalCount}`" :columns="columns" :data="transactions" :loading="loading" :pagination="false" striped />
-      <div class="mt-4 flex justify-between items-center">
-        <div class="text-sm text-gray-600">
-          Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, computedTotalCount) }} of {{ computedTotalCount }} entries
-        </div>
-        <n-pagination v-model:page="currentPage" v-model:page-size="pageSize" :page-count="Math.ceil(computedTotalCount / pageSize)" :page-sizes="[10, 20, 50]" show-size-picker show-quick-jumper @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
-      </div>
+      <ResponsiveDataTable
+        :key="`transactions-${currentPage}-${pageSize}-${totalCount}`"
+        :columns="columns"
+        :data="transactions"
+        :loading="loading"
+        :page="currentPage"
+        :page-size="pageSize"
+        :total-count="computedTotalCount"
+        :page-sizes="[10, 20, 50]"
+        title-key="transactionType"
+        subtitle-key="accountName"
+        striped
+        @update:page="handlePageChange"
+        @update:page-size="handlePageSizeChange"
+      />
     </n-card>
 
     <!-- Transaction Drawer -->
-    <n-drawer v-model:show="showDrawer" :width="502" placement="right" :trap-focus="false">
+    <n-drawer v-model:show="showDrawer" :width="502" :height="isMobile ? '90%' : '100%'" :placement="isMobile ? 'bottom' : 'right'" :trap-focus="false">
       <n-drawer-content :title="formTitle" closable>
         <n-form ref="formRef" :model="formData" :rules="rules" label-placement="top">
           <div class="grid grid-cols-2 gap-4">

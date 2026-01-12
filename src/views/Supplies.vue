@@ -3,7 +3,6 @@ import { ref, reactive, computed } from 'vue';
 import {
   NButton,
   NCard,
-  NDataTable,
   NSpace,
   NDrawer,
   NDrawerContent,
@@ -14,7 +13,6 @@ import {
   NSelect,
   NDatePicker,
   useMessage,
-  NPagination
 } from 'naive-ui';
 import { useSupplies } from '../composables/useSupplies';
 import { FormInst } from 'naive-ui';
@@ -22,7 +20,9 @@ import { supplyColumns } from '../Constants/GridColumns';
 import { PaymentStatus } from '../Constants/Enums';
 import { useCustomers } from '../composables/useCustomers';
 import { useCommon } from '../composables/useCommon';
-
+import ResponsiveDataTable from '../components/ResponsiveDataTable.vue';
+import { useBreakpoint } from '../composables/useBreakpoint';
+const { isMobile } = useBreakpoint();
 // Message API
 const message = useMessage();
 
@@ -344,34 +344,24 @@ fetchFruits();
 
     <!-- Supplies Table -->
     <n-card>
-      <n-data-table
+      <ResponsiveDataTable
         :columns="columns"
         :data="supplies"
         :loading="loading"
-        :pagination="false"
+        :page="currentPage"
+        :page-size="pageSize"
+        :total-count="computedTotalCount"
+        :page-sizes="[10, 20, 50]"
+        title-key="supplyNumber"
+        subtitle-key="supplierName"
         striped
+        @update:page="handlePageChange"
+        @update:page-size="handlePageSizeChange"
       />
-
-      <!-- Custom Pagination -->
-      <div class="mt-4 flex justify-between items-center">
-        <div class="text-sm text-gray-600">
-          Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, computedTotalCount) }} of {{ computedTotalCount }} entries
-        </div>
-        <n-pagination
-          v-model:page="currentPage"
-          v-model:page-size="pageSize"
-          :page-count="Math.ceil(computedTotalCount / pageSize)"
-          :page-sizes="[10, 20, 50]"
-          show-size-picker
-          show-quick-jumper
-          @update:page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
-        />
-      </div>
     </n-card>
 
     <!-- Supply Drawer -->
-    <n-drawer v-model:show="showDrawer" :width="502" placement="right" :trap-focus="false">
+    <n-drawer v-model:show="showDrawer" :width="502" :height="isMobile ? '90%' : '100%'" :placement="isMobile ? 'bottom' : 'right'" :trap-focus="false">
       <n-drawer-content :title="formTitle" closable>
         <n-form ref="formRef" :model="formData" :rules="rules" :key="formKey" label-placement="top">
           <div class="grid grid-cols-2 gap-4">
