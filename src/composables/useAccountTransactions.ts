@@ -87,19 +87,24 @@ export function useAccountTransactions() {
     }
   }
 
-  async function fetchStatement({ accountId, entityId, fromDate, toDate }: {
-    accountId?: number;
-    entityId?: number;
+  async function fetchStatement({
+    accountId,
+    entityId,
+    fromDate,
+    toDate,
+  }: {
+    accountId?: number | null;
+    entityId?: number | null;
     fromDate: string;
     toDate: string;
   }) {
     loading.value = true;
     try {
       const response = await apiService.post<any>(
-        '/api/AccountTransaction/statement',
+        "/api/AccountTransaction/statement",
         {
-          accountId: accountId || 0,
-          entityId: entityId || 0,
+          accountId: accountId || null,
+          entityId: entityId || null,
           fromDate,
           toDate,
         }
@@ -111,8 +116,8 @@ export function useAccountTransactions() {
   }
 
     async function exportStatement({accountId, entityId, fromDate, toDate,}: {
-      accountId?: number;
-      entityId?: number;
+      accountId?: number | null;
+      entityId?: number | null;
       fromDate: string;
       toDate: string;
     }) {
@@ -121,8 +126,8 @@ export function useAccountTransactions() {
         await apiService.downloadFile(
           "/api/AccountTransaction/export-statement",
           {
-            accountId: accountId || 0,
-            entityId: entityId || 0,
+            accountId: accountId || null,
+            entityId: entityId || null,
             fromDate,
             toDate,
           },
