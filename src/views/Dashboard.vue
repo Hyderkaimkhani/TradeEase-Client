@@ -6,7 +6,6 @@ import {
   NGi,
   NNumberAnimation,
   NIcon,
-  NDataTable,
   NTag
 } from 'naive-ui';
 import {
@@ -16,6 +15,7 @@ import {
   WalletOutline as RevenueIcon
 } from '@vicons/ionicons5';
 import { useDashboard } from '../composables/useDashboard';
+import ResponsiveDataTable from '../components/ResponsiveDataTable.vue';
 
 // Get dashboard data
 const { 
@@ -176,18 +176,18 @@ onMounted(() => {
     <div class="mt-8">
       <h2 class="text-xl font-semibold mb-4">Recent Shipments</h2>
       <n-card>
-        <n-data-table
+        <ResponsiveDataTable
           :columns="shipmentColumns"
           :data="recentShipments"
           :loading="loading"
-          :pagination="{ 
-            page, 
-            pageSize,
-            itemCount: recentShipments.length,
-            onUpdatePage: (page) => { page = page },
-            onUpdatePageSize: (pageSize) => { pageSize = pageSize }
-          }"
+          :page="page"
+          :page-size="pageSize"
+          :total-count="recentShipments.length"
+          title-key="customer"
+          subtitle-key="origin"
           striped
+          @update:page="(p) => page = p"
+          @update:page-size="(s) => pageSize = s"
         />
       </n-card>
     </div>
