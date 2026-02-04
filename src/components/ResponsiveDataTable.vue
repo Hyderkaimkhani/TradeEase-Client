@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { NDataTable, NPagination, NEmpty, NSpin } from 'naive-ui';
 import type { DataTableColumn, DataTableBaseColumn } from 'naive-ui';
 import { useBreakpoint } from '../composables/useBreakpoint';
+import MobileCellRenderer from './MobileCellRenderer.vue';
 
 // Define types for mobile display configuration
 export interface MobileColumn {
@@ -85,7 +86,7 @@ const displayColumns = computed(() => {
   if (props.mobileColumns) {
     return props.mobileColumns;
   }
-  
+
   // Auto-generate from table columns
   return props.columns
     .filter(col => hasKey(col) && col.key !== 'actions' && col.key !== 'action')
@@ -108,18 +109,18 @@ const actionsColumn = computed(() => {
 // Render cell value for mobile
 const renderCellValue = (row: any, column: MobileColumn) => {
   const key = column.key;
-  
+
   // Check if column has custom render function
   if (column.render && typeof column.render === 'function') {
     return column.render(row);
   }
-  
+
   // Check original columns for render function
   const originalColumn = props.columns.find(c => hasKey(c) && c.key === key) as DataTableBaseColumn | undefined;
   if (originalColumn && 'render' in originalColumn && typeof originalColumn.render === 'function') {
     return originalColumn.render(row, 0);
   }
-  
+
   // Return raw value
   const value = row[key];
   if (value === null || value === undefined) return '-';
@@ -133,17 +134,17 @@ const getPrimaryValue = (row: any) => {
   if (props.titleKey) {
     return row[props.titleKey] || '-';
   }
-  
+
   // Try to find a primary column
   const primaryCol = displayColumns.value.find(c => c.isPrimary);
   if (primaryCol) {
     return row[primaryCol.key] || '-';
   }
-  
+
   // Fallback to first column or name/title field
   const nameField = ['name', 'title', 'orderNumber', 'supplyNumber', 'accountNumber'].find(f => row[f]);
   if (nameField) return row[nameField];
-  
+
   return row[displayColumns.value[0]?.key] || '-';
 };
 
@@ -158,7 +159,7 @@ const getSubtitleValue = (row: any) => {
 // Get display fields for mobile (excluding primary and subtitle)
 const getMobileFields = computed(() => {
   const excludeKeys = [props.titleKey, props.subtitleKey].filter(Boolean);
-  return displayColumns.value.filter(col => 
+  return displayColumns.value.filter(col =>
     !col.isPrimary && !excludeKeys.includes(col.key)
   );
 });
@@ -189,15 +190,8 @@ const showingText = computed(() => {
   <div class="responsive-data-table">
     <!-- Desktop View: Standard Data Table -->
     <div v-if="!isMobile" class="desktop-view">
-      <n-data-table
-        :columns="columns"
-        :data="data"
-        :loading="loading"
-        :striped="striped"
-        :bordered="bordered"
-        :row-key="(row: any) => row[rowKey]"
-        :pagination="false"
-      />
+      <n-data-table :columns="columns" :data="data" :loading="loading" :striped="striped" :bordered="bordered"
+        :row-key="(row: any) => row[rowKey]" :pagination="false" />
     </div>
 
     <!-- Mobile View: Card-based Layout -->
@@ -206,14 +200,11 @@ const showingText = computed(() => {
         <div v-if="data.length === 0" class="py-8">
           <n-empty description="No data available" />
         </div>
-        
+
         <div v-else class="space-y-3">
-          <div
-            v-for="(row, index) in data"
-            :key="row[rowKey] || index"
+          <div v-for="(row, index) in data" :key="row[rowKey] || index"
             class="mobile-card bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
-            @click="handleRowClick(row)"
-          >
+            @click="handleRowClick(row)">
             <!-- Card Header -->
             <div class="mobile-card-header bg-gray-50 px-4 py-3 border-b border-gray-200">
               <div class="flex justify-between items-start">
@@ -241,13 +232,7 @@ const showingText = computed(() => {
                       {{ column.label }}
                     </div>
                     <div class="text-sm text-gray-900 font-medium">
-                      <component 
-                        v-if="typeof renderCellValue(row, column) === 'object'"
-                        :is="() => renderCellValue(row, column)" 
-                      />
-                      <template v-else>
-                        {{ renderCellValue(row, column) }}
-                      </template>
+                      <MobileCellRenderer :row="row" :column="column" :render-cell-value="renderCellValue" />
                     </div>
                   </div>
                 </template>
@@ -255,14 +240,11 @@ const showingText = computed(() => {
             </div>
 
             <!-- Card Footer with Actions -->
-            <div 
-              v-if="actionsColumn?.render" 
-              class="mobile-card-footer bg-gray-50 px-4 py-2 border-t border-gray-200"
-            >
+            <div v-if="actionsColumn?.render" class="mobile-card-footer bg-gray-50 px-4 py-2 border-t border-gray-200">
               <div class="flex justify-end">
-                <component 
-                  :is="() => actionsColumn!.render!(row, index)" 
-                />
+                <MobileCellRenderer :row="row"
+                  :column="{ key: 'actions', label: '', render: (r: any) => actionsColumn!.render!(r, index) }"
+                  :render-cell-value="(r, c) => c.render ? c.render(r) : null" />
               </div>
             </div>
           </div>
@@ -271,20 +253,13 @@ const showingText = computed(() => {
     </div>
 
     <!-- Pagination (shared for both views) -->
-    <div v-if="showPagination && computedTotalCount > 0" class="mt-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+    <div v-if="showPagination && computedTotalCount > 0"
+      class="mt-4 flex flex-col sm:flex-row justify-between items-center gap-3">
       <div class="text-sm text-gray-600">
         {{ showingText }}
       </div>
-      <n-pagination
-        :page="page"
-        :page-size="pageSize"
-        :page-count="pageCount"
-        :page-sizes="pageSizes"
-        show-size-picker
-        :show-quick-jumper="!isMobile"
-        @update:page="handlePageChange"
-        @update:page-size="handlePageSizeChange"
-      />
+      <n-pagination :page="page" :page-size="pageSize" :page-count="pageCount" :page-sizes="pageSizes" show-size-picker
+        :show-quick-jumper="!isMobile" @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
     </div>
   </div>
 </template>
@@ -331,7 +306,7 @@ const showingText = computed(() => {
     justify-content: center;
     gap: 8px;
   }
-  
+
   .responsive-data-table :deep(.n-pagination .n-pagination-item) {
     min-width: 32px;
     height: 32px;
