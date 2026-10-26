@@ -53,5 +53,5 @@ Improved UX for order-to-supply linking workflows.
 
 ## Summary
 
-TradeEase is not just a supply chain solution but also an integrated accounting system. From managing companies and customers to handling payments, expenses, and generating statements, it provides businesses with everything they need to manage operations and finances in one place.
+TradeEase is not just a supply chain solution but also an integrated accounting system. From managing companies and customers to handling payments, expenses, and generating statements, it provides businesses with everything they need to manage operations and finances in one place. 
 
